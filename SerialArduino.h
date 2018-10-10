@@ -1,14 +1,14 @@
 #ifndef SERIALARDUINO_H
 #define SERIALARDUINO_H
 
-#include <QSerialPortInfo>
 #include <QSerialPort>
+#include <QSerialPortInfo>
 #include <QDebug>
 
 class SerialArduino
 {
 public:
-    SerialArduino();    
+    SerialArduino();
     long ReadSensor(double &incli, double &orien);
 
 private:
