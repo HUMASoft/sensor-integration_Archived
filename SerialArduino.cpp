@@ -1,5 +1,7 @@
 #include "SerialArduino.h"
 
+using namespace std;
+
 SerialArduino::SerialArduino()
 {
 //    QApplication a(argc, argv);
@@ -52,11 +54,11 @@ SerialArduino::SerialArduino()
 
 long SerialArduino::ReadSensor(double &incli, double &orien)
 {
-
+    port->waitForReadyRead(100);
     if(port->isReadable()){
         dataread = port->readLine();
         if(dataread!="\n"){
-            //qDebug() <<"Dato total:"<<dataread;
+//            qDebug() <<"Dato total:"<<dataread;
             serialBuffer = QString::fromStdString(dataread.data());
             data1=serialBuffer;
             data2=serialBuffer;
@@ -66,10 +68,13 @@ long SerialArduino::ReadSensor(double &incli, double &orien)
                     data1=data1.remove(x,serialBuffer.size());
                     data2=data2.remove(0,x+1);}
             }
-            psi=data1.toFloat();
-            theta=data2.toFloat();
-            qDebug() <<"Angulo psi:  "<< psi;
-            qDebug() <<"Angulo theta:  "<< theta <<endl;
+
+            orien=data1.toFloat();
+            incli=data2.toFloat();
+
+//            cout << "ReadSensor" << orien << endl << endl;
+//            qDebug() <<"Angulo psi:  "<< psi;
+//            qDebug() <<"Angulo theta:  "<< theta <<endl;
         }
     }
 

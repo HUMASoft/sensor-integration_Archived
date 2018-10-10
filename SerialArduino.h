@@ -1,6 +1,8 @@
 #ifndef SERIALARDUINO_H
 #define SERIALARDUINO_H
 
+#include <iostream>
+
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QDebug>
