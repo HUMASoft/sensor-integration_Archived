@@ -23,7 +23,7 @@ private:
     QByteArray dataread;
     QString serialBuffer, data1, data2;
     int x;
-    float theta, psi;
+    float theta, phi;
 };
 
 #endif // SERIALARDUINO_H

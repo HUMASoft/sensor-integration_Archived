@@ -53,7 +53,7 @@ SerialArduino::SerialArduino()
 }
 
 long SerialArduino::ReadSensor(double &incli, double &orien)
-{
+/*{
     port->waitForReadyRead(100);
     if(port->isReadable()){
         dataread = port->readLine();
@@ -78,5 +78,45 @@ long SerialArduino::ReadSensor(double &incli, double &orien)
         }
     }
 
+return 0;
+}*/
+{
+
+    if (port->waitForReadyRead(1))
+    {
+        if(port->isReadable()){
+            dataread = port->readLine();
+            if(dataread!="\n"){
+                //qDebug() <<"Dato total:"<<dataread;
+                serialBuffer = QString::fromStdString(dataread.data());
+                data1=serialBuffer;
+                data2=serialBuffer;
+                //qDebug() <<"data2:  "<< data2;
+                for (x=0; x <= serialBuffer.size(); x++)
+                {
+                    if (serialBuffer[x]==','){
+                        data1=data1.remove(x,serialBuffer.size());
+                        data2=data2.remove(0,x+1);}
+                }
+//                qDebug() <<"1:  "<< data1;
+//                qDebug() <<"2:  "<< data2;
+
+                theta=data1.toFloat();
+                phi=data2.toFloat();
+                orien=theta;
+                incli=phi;
+
+//                            cout << "ReadSensor" << orien << endl << endl;
+
+//                            qDebug() <<"Angulo theta:  "<< theta;
+//                            qDebug() <<"Angulo psi:  "<< data2 <<endl;
+            }
+        }
+    }
+    else
+    {
+        orien=theta;
+        incli=phi;
+    }
 return 0;
 }
