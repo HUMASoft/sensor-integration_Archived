@@ -41,7 +41,7 @@ SerialArduino::SerialArduino()
             // open and configure the serialport
             port->setPortName(arduino_port_name);
             port->open(QIODevice::ReadWrite);
-            port->setBaudRate(QSerialPort::Baud9600);
+            port->setBaudRate(QSerialPort::Baud38400);
             port->setDataBits(QSerialPort::Data8);
             port->setParity(QSerialPort::NoParity);
             port->setStopBits(QSerialPort::OneStop);
