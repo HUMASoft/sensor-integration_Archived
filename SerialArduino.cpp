@@ -41,7 +41,7 @@ SerialArduino::SerialArduino()
             // open and configure the serialport
             port->setPortName(arduino_port_name);
             port->open(QIODevice::ReadWrite);
-            port->setBaudRate(QSerialPort::Baud38400);
+            port->setBaudRate(QSerialPort::Baud9600);
             port->setDataBits(QSerialPort::Data8);
             port->setParity(QSerialPort::NoParity);
             port->setStopBits(QSerialPort::OneStop);
@@ -82,8 +82,9 @@ return 0;
 }*/
 {
 
-    if (port->waitForReadyRead(1))
-    {
+    //if (port->waitForReadyRead(-1)){
+
+        port->waitForReadyRead(-1);
         if(port->isReadable()){
             dataread = port->readLine();
             if(dataread!="\n"){
@@ -112,11 +113,45 @@ return 0;
 //                            qDebug() <<"Angulo psi:  "<< data2 <<endl;
             }
         }
-    }
-    else
+  // }
+//    else
+//    {
+//        orien=theta;
+//        incli=phi;
+//    }
+        return 0;
+}
+
+long SerialArduino::ReadInclination()
+{
+    //Ask for inclination value
+    port->write("i",1);
+    //wait the data
+    port->waitForReadyRead(-1);
+    if(port->isReadable())
     {
-        orien=theta;
-        incli=phi;
+        //qDebug() <<"Dato total incl:"<<datareadInc;
+//        dataread = port->readLine(100);
+        datareadInc = port->readLine();
     }
-return 0;
+    data1 = QString::fromStdString(datareadInc.data());
+
+    return data1.toFloat();
+}
+
+long SerialArduino::ReadOrientation()
+{
+    //Ask for orientation value
+    port->write("o",1);
+    //wait the data
+    port->waitForReadyRead(-1);
+    if(port->isReadable())
+    {
+        //qDebug() <<"Dato total orien:"<<datareadOri;
+//        dataread = port->readLine(100);
+        datareadOri = port->readLine();
+    }
+    data2 = QString::fromStdString(datareadOri.data());
+
+    return data2.toFloat();
 }
