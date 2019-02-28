@@ -2,13 +2,18 @@
 
 using namespace std;
 
+
+
+
 SerialArduino::SerialArduino()
 {
 //    QApplication a(argc, argv);
         arduino_is_available = false;
         arduino_port_name = "";
         port = new QSerialPort;
-
+        dataSensor.resize(20);
+        oriString.resize(20);
+        incliString.resize(20);
 
         //Parte # 2,buscar puertos con los identificadores de Arduino
         qDebug() << "Number of available ports: " << QSerialPortInfo::availablePorts().length();
@@ -52,106 +57,46 @@ SerialArduino::SerialArduino()
 
 }
 
-long SerialArduino::ReadSensor(double &incli, double &orien)
-/*{
-    port->waitForReadyRead(100);
-    if(port->isReadable()){
-        dataread = port->readLine();
-        if(dataread!="\n"){
-//            qDebug() <<"Dato total:"<<dataread;
-            serialBuffer = QString::fromStdString(dataread.data());
-            data1=serialBuffer;
-            data2=serialBuffer;
-            for (x=0; x <= serialBuffer.size(); x++)
-            {
-                if (serialBuffer[x]==','){
-                    data1=data1.remove(x,serialBuffer.size());
-                    data2=data2.remove(0,x+1);}
-            }
 
-            orien=data1.toFloat();
-            incli=data2.toFloat();
-
-//            cout << "ReadSensor" << orien << endl << endl;
-//            qDebug() <<"Angulo psi:  "<< psi;
-//            qDebug() <<"Angulo theta:  "<< theta <<endl;
-        }
-    }
-
-return 0;
-}*/
+long SerialArduino::readSensor(float &incli, float &orien)
 {
 
-    //if (port->waitForReadyRead(-1)){
-
-        port->waitForReadyRead(-1);
-        if(port->isReadable()){
-            dataread = port->readLine();
-            if(dataread!="\n"){
-                //qDebug() <<"Dato total:"<<dataread;
-                serialBuffer = QString::fromStdString(dataread.data());
-                data1=serialBuffer;
-                data2=serialBuffer;
-                //qDebug() <<"data2:  "<< data2;
-                for (x=0; x <= serialBuffer.size(); x++)
-                {
-                    if (serialBuffer[x]==','){
-                        data1=data1.remove(x,serialBuffer.size());
-                        data2=data2.remove(0,x+1);}
-                }
-//                qDebug() <<"1:  "<< data1;
-//                qDebug() <<"2:  "<< data2;
-
-                theta=data1.toFloat();
-                phi=data2.toFloat();
-                orien=theta;
-                incli=phi;
-
-//                            cout << "ReadSensor" << orien << endl << endl;
-
-//                            qDebug() <<"Angulo theta:  "<< theta;
-//                            qDebug() <<"Angulo psi:  "<< data2 <<endl;
-            }
-        }
-  // }
-//    else
-//    {
-//        orien=theta;
-//        incli=phi;
-//    }
-        return 0;
-}
-
-long SerialArduino::ReadInclination()
-{
-    //Ask for inclination value
+//    //Ask for inclination value
     port->write("i",1);
-    //wait the data
+//    //wait the data
     port->waitForReadyRead(-1);
     if(port->isReadable())
     {
-        //qDebug() <<"Dato total incl:"<<datareadInc;
-//        dataread = port->readLine(100);
-        datareadInc = port->readLine();
+
+        for (int i=0;i<dataSensor.size();i++)
+         {
+             // waitForReadyRead(security factor * bits/byte * ms/s / port->baudRate())
+             port->waitForReadyRead(1.2*8*1000/port->baudRate());
+             port->getChar(&dataSensor[i]);
+             //Data read line
+             if (dataSensor[i]== '\n') break;
+         }
+
+        incliString=dataSensor;
+        oriString=dataSensor;
+        //Find ',' in data sensor to divide in incl and orient
+        for (int i=0;i<dataSensor.size();i++)
+         {
+        if (dataSensor[i]==','){
+            incliString=incliString.erase(i,dataSensor.size());
+            oriString=oriString.erase(0,i+1);
+            }
+         }
+
+        //Identify data between incl and orient
+        if (incliString[0]== 'i' || oriString[0]== 'o'){
+        incliString=incliString.erase(0,1);
+        incli = stof(incliString);
+        oriString=oriString.erase(0,1);
+        orien = stof(oriString);
+
     }
-    data1 = QString::fromStdString(datareadInc.data());
 
-    return data1.toFloat();
-}
-
-long SerialArduino::ReadOrientation()
-{
-    //Ask for orientation value
-    port->write("o",1);
-    //wait the data
-    port->waitForReadyRead(-1);
-    if(port->isReadable())
-    {
-        //qDebug() <<"Dato total orien:"<<datareadOri;
-//        dataread = port->readLine(100);
-        datareadOri = port->readLine();
     }
-    data2 = QString::fromStdString(datareadOri.data());
 
-    return data2.toFloat();
 }
