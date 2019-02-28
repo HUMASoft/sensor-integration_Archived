@@ -2,18 +2,21 @@
 #define SERIALARDUINO_H
 
 #include <iostream>
+#include <string>
 
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QDebug>
 
+using namespace std;
+
 class SerialArduino
 {
 public:
     SerialArduino();
-    long ReadSensor(double &incli, double &orien);
-    long ReadInclination();
-    long ReadOrientation();
+
+    long readSensor(float &incli, float &orien);
+
 
 private:
     QSerialPort *port;
@@ -25,6 +28,9 @@ private:
     QByteArray datareadInc;
     QByteArray datareadOri;
     QString serialBuffer, data1, data2;
+    string oriString, incliString;
+    string dataSensor;
+
     int x;
     float theta, phi;
 };
