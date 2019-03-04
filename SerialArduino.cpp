@@ -97,5 +97,6 @@ long SerialArduino::readSensor(float &incli, float &orien)
     }
 
     }
+    return 0;
 
 }
