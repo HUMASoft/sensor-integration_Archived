@@ -8,6 +8,7 @@ using namespace std;
 SerialArduino::SerialArduino()
 {
 //    QApplication a(argc, argv);
+    QCoreApplication app();
         arduino_is_available = false;
         arduino_port_name = "";
         port = new QSerialPort;
@@ -90,12 +91,33 @@ long SerialArduino::readSensor(float &incli, float &orien)
          }
 
         //Identify data between incl and orient
-        if (incliString[0]== 'i' || oriString[0]== 'o'){
-        incliString=incliString.erase(0,1);
-        incli = stof(incliString);
-        oriString=oriString.erase(0,1);
-        orien = stof(oriString);
-    }
+        if (incliString[0]== 'i' || oriString[0]== 'o')
+        {
+            if (incliString[1] < '0' || incliString[1] > '9')
+            {
+                cout << "Wrong incliString!!! ->" << incliString[1] << endl;
+                cerr << "Wrong incliString!!! ->" << incliString[1] << endl;
+
+            }
+            else
+            {
+                incliString=incliString.erase(0,1);
+                incli = stof(incliString);
+            }
+            if (oriString[1] < '0' || oriString[1] > '9')
+            {
+                cout << "Wrong oriString: " << oriString[1] << endl;
+                cerr << "Wrong oriString: " << oriString[1] << endl;
+
+            }
+            else
+            {
+                oriString=oriString.erase(0,1);
+                orien = stof(oriString);
+            }
+
+        }
+
 
     }
     return 0;

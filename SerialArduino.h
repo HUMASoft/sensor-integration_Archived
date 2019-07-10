@@ -7,6 +7,7 @@
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QDebug>
+#include <QtCore>
 
 using namespace std;
 
