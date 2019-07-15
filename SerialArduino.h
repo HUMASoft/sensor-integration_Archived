@@ -31,6 +31,7 @@ private:
     QString serialBuffer, data1, data2;
     string oriString, incliString;
     string dataSensor;
+    char dataarray[20];
     long dataSize;
 
     int x;

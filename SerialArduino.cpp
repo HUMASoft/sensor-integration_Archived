@@ -85,27 +85,29 @@ long SerialArduino::readSensor(float &incli, float &orien)
     //This read should not block more than a second.
 //    if(!port->waitForReadyRead(1000)) return -1;
     // waitForReadyRead(security factor * data string size * bits/byte * ms/s / port->baudRate())
-    if (!port->waitForReadyRead(1.2*dataSize*8*1000/port->baudRate())) return -1;
+    if (!port->waitForReadyRead(1.2*8*1000/port->baudRate())) return -1;
 
-    if( port->isReadable())
+//    if( port->isReadable())
     {
+        port->readLine(dataarray,dataSize);
 
-        for (int i=0;i<dataSize;i++)
-        {
-//            port->waitForReadyRead(1.2*8*1000/port->baudRate());
-            // waitForReadyRead(security factor * bits/byte * ms/s / port->baudRate())
-//            if (!port->waitForReadyRead(-1));//(1.2*8*1000/port->baudRate()))
+//        for (int i=0;i<dataSize;i++)
+//        {
+////            port->waitForReadyRead(1.2*8*1000/port->baudRate());
+//            // waitForReadyRead(security factor * bits/byte * ms/s / port->baudRate())
+//            if (!port->waitForReadyRead(1000*1.2*8*1000/port->baudRate()))
 //            {
 //                cout << "Port tiemout!!!" << endl;
 //                cerr << "Port tiemout!!!" << endl;
 //                return -1;
 //            }
 
-            //Data read line
-            port->getChar(&dataSensor[i]);
-            if (dataSensor[i]== '\n') break;
-        }
+//            //Data read line
+//            port->getChar(&dataSensor[i]);
+//            if (dataSensor[i]== '\n') break;
+//        }
 
+        dataSensor = string(dataarray);
         incliString=dataSensor;
         oriString=dataSensor;
         //Find ',' in data sensor to divide in incl and orient
