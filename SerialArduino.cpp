@@ -8,13 +8,15 @@ using namespace std;
 SerialArduino::SerialArduino()
 {
 //    QApplication a(argc, argv);
+//    QApplication a(0, 0);
     QCoreApplication app();
         arduino_is_available = false;
         arduino_port_name = "";
         port = new QSerialPort;
-        dataSensor.resize(20);
-        oriString.resize(20);
-        incliString.resize(20);
+        dataSize = 20;
+        dataSensor.resize(dataSize);
+        oriString.resize(dataSize);
+        incliString.resize(dataSize);
 
         //Parte # 2,buscar puertos con los identificadores de Arduino
         qDebug() << "Number of available ports: " << QSerialPortInfo::availablePorts().length();
@@ -66,29 +68,41 @@ long SerialArduino::readSensor(float &incli, float &orien)
 //    //Ask for inclination value
     port->write("i",1);
 //    //wait the data
-    port->waitForReadyRead(-1);
-    if(port->isReadable())
+    //This read should not block more than a second.
+//    if(!port->waitForReadyRead(1000)) return -1;
+    // waitForReadyRead(security factor * data string size * bits/byte * ms/s / port->baudRate())
+    if (!port->waitForReadyRead(1.2*dataSize*8*1000/port->baudRate())) return -1;
+
+    if( port->isReadable())
     {
 
-        for (int i=0;i<dataSensor.size();i++)
-         {
-             // waitForReadyRead(security factor * bits/byte * ms/s / port->baudRate())
-             port->waitForReadyRead(1.2*8*1000/port->baudRate());
-             port->getChar(&dataSensor[i]);
-             //Data read line
-             if (dataSensor[i]== '\n') break;
-         }
+        for (int i=0;i<dataSize;i++)
+        {
+//            port->waitForReadyRead(1.2*8*1000/port->baudRate());
+            // waitForReadyRead(security factor * bits/byte * ms/s / port->baudRate())
+//            if (!port->waitForReadyRead(-1));//(1.2*8*1000/port->baudRate()))
+//            {
+//                cout << "Port tiemout!!!" << endl;
+//                cerr << "Port tiemout!!!" << endl;
+//                return -1;
+//            }
+
+            //Data read line
+            port->getChar(&dataSensor[i]);
+            if (dataSensor[i]== '\n') break;
+        }
 
         incliString=dataSensor;
         oriString=dataSensor;
         //Find ',' in data sensor to divide in incl and orient
         for (int i=0;i<dataSensor.size();i++)
-         {
-        if (dataSensor[i]==','){
-            incliString=incliString.erase(i,dataSensor.size());
-            oriString=oriString.erase(0,i+1);
+        {
+            if (dataSensor[i]==',')
+            {
+                incliString=incliString.erase(i,dataSensor.size());
+                oriString=oriString.erase(0,i+1);
             }
-         }
+        }
 
         //Identify data between incl and orient
         if (incliString[0]== 'i' || oriString[0]== 'o')
@@ -97,10 +111,12 @@ long SerialArduino::readSensor(float &incli, float &orien)
             {
                 cout << "Wrong incliString!!! ->" << incliString[1] << endl;
                 cerr << "Wrong incliString!!! ->" << incliString[1] << endl;
+                return -1;
 
             }
             else
             {
+                //remove the initial letter (i/o)
                 incliString=incliString.erase(0,1);
                 incli = stof(incliString);
             }
@@ -108,10 +124,12 @@ long SerialArduino::readSensor(float &incli, float &orien)
             {
                 cout << "Wrong oriString: " << oriString[1] << endl;
                 cerr << "Wrong oriString: " << oriString[1] << endl;
+                return -1;
 
             }
             else
             {
+                //remove the initial letter (i/o)
                 oriString=oriString.erase(0,1);
                 orien = stof(oriString);
             }
@@ -120,6 +138,10 @@ long SerialArduino::readSensor(float &incli, float &orien)
 
 
     }
+//    else //
+//    {
+//        return -1;
+//    }
     return 0;
 
 }
