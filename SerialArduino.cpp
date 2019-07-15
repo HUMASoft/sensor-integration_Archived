@@ -9,7 +9,7 @@ SerialArduino::SerialArduino()
 {
 //    QApplication a(argc, argv);
 //    QApplication a(0, 0);
-    QCoreApplication app();
+//    QCoreApplication app();
         arduino_is_available = false;
         arduino_port_name = "";
         port = new QSerialPort;
@@ -36,8 +36,10 @@ SerialArduino::SerialArduino()
             if(serialPortInfo.hasVendorIdentifier() && serialPortInfo.hasProductIdentifier()){
                if(serialPortInfo.vendorIdentifier() == arduino_uno_vendor_id){
                  if(serialPortInfo.productIdentifier() == arduino_MEGA){
-                   if(serialPortInfo.portName()=="ttyACM0") {
+//                   if(serialPortInfo.portName()=="ttyACM0")
+                   {
                     arduino_port_name=serialPortInfo.portName();
+                    cout << "arduino_port_name: " << arduino_port_name.toUtf8().constData() << endl;
                     arduino_is_available = true;
                    }
                  }
@@ -45,18 +47,30 @@ SerialArduino::SerialArduino()
             }
          }
 
-        if(arduino_is_available && arduino_port_name=="ttyACM0"){
+//        if(arduino_is_available && arduino_port_name=="ttyACM0"){
             // open and configure the serialport
             port->setPortName(arduino_port_name);
-            port->open(QIODevice::ReadWrite);
+
+            if (port->open(QIODevice::ReadWrite))
+            {
+                cout << "port->open" << endl;
+                arduino_is_available = true;
+            }
+            else
+            {
+                arduino_is_available = false;
+                cout << "port->error. Check if user is in dialout group (sudo usermod -a -G dialout <user>)." << endl;
+
+            }
+
 //            port->setBaudRate(QSerialPort::Baud9600);
-            port->setBaudRate(QSerialPort::Baud115200);
-            port->setDataBits(QSerialPort::Data8);
-            port->setParity(QSerialPort::NoParity);
-            port->setStopBits(QSerialPort::OneStop);
-            port->setFlowControl(QSerialPort::NoFlowControl);
+            cout << "setBaudRate:" << port->setBaudRate(QSerialPort::Baud115200);
+            cout << ", setDataBits: " << port->setDataBits(QSerialPort::Data8);
+            cout << ", setParity: " << port->setParity(QSerialPort::NoParity);
+            cout << ", setStopBits: " << port->setStopBits(QSerialPort::OneStop);
+            cout << ", setFlowControl: " << port->setFlowControl(QSerialPort::NoFlowControl) << endl;
             //QObject::connect(arduino, SIGNAL(readyRead()), this, SLOT(readSerial()));
-    }
+//    }
 
 
 }
