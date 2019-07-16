@@ -55,6 +55,18 @@ SerialArduino::SerialArduino()
             {
                 cout << "port->open" << endl;
                 arduino_is_available = true;
+                if (port->waitForReadyRead(10000))
+                {
+
+                    port->readLine(dataarray,dataSize);
+                    dataSensor = string(dataarray);
+                    cout << "Port initialization: "  << dec << dataSensor << endl;
+
+                }
+                else
+                {
+                    cout << "Port initialization: empty answer" << endl;
+                }
             }
             else
             {
@@ -63,8 +75,8 @@ SerialArduino::SerialArduino()
 
             }
 
-//            port->setBaudRate(QSerialPort::Baud9600);
-            cout << "setBaudRate:" << port->setBaudRate(QSerialPort::Baud115200);
+//            cout << "setBaudRate:" << port->setBaudRate(QSerialPort::Baud9600);
+            cout << "setBaudRate:" << port->setBaudRate(QSerialPort::Baud19200);
             cout << ", setDataBits: " << port->setDataBits(QSerialPort::Data8);
             cout << ", setParity: " << port->setParity(QSerialPort::NoParity);
             cout << ", setStopBits: " << port->setStopBits(QSerialPort::OneStop);
@@ -85,15 +97,17 @@ long SerialArduino::readSensor(float &incli, float &orien)
     //This read should not block more than a second.
 //    if(!port->waitForReadyRead(1000)) return -1;
     // waitForReadyRead(security factor * data string size * bits/byte * ms/s / port->baudRate())
-    if (!port->waitForReadyRead(1.2*8*1000/port->baudRate())) return -1;
+    if (!port->waitForReadyRead(1.2*8*dataSize*1000/port->baudRate())) return -1;
 
-//    if( port->isReadable())
+    if( port->isReadable())
     {
         port->readLine(dataarray,dataSize);
+        dataSensor = string(dataarray);
+//        cout << "dataSensor -> " << dataSensor << endl;
 
 //        for (int i=0;i<dataSize;i++)
 //        {
-////            port->waitForReadyRead(1.2*8*1000/port->baudRate());
+//            //port->waitForReadyRead(1.2*8*1000/port->baudRate());
 //            // waitForReadyRead(security factor * bits/byte * ms/s / port->baudRate())
 //            if (!port->waitForReadyRead(1000*1.2*8*1000/port->baudRate()))
 //            {
@@ -107,7 +121,7 @@ long SerialArduino::readSensor(float &incli, float &orien)
 //            if (dataSensor[i]== '\n') break;
 //        }
 
-        dataSensor = string(dataarray);
+
         incliString=dataSensor;
         oriString=dataSensor;
         //Find ',' in data sensor to divide in incl and orient
@@ -120,44 +134,84 @@ long SerialArduino::readSensor(float &incli, float &orien)
             }
         }
 
-        //Identify data between incl and orient
-        if (incliString[0]== 'i' || oriString[0]== 'o')
+        try
         {
-            if (incliString[1] < '0' || incliString[1] > '9')
-            {
-                cout << "Wrong incliString!!! ->" << incliString[1] << endl;
-                cerr << "Wrong incliString!!! ->" << incliString[1] << endl;
-                return -1;
-
-            }
-            else
-            {
-                //remove the initial letter (i/o)
-                incliString=incliString.erase(0,1);
-                incli = stof(incliString);
-            }
-            if (oriString[1] < '0' || oriString[1] > '9')
-            {
-                cout << "Wrong oriString: " << oriString[1] << endl;
-                cerr << "Wrong oriString: " << oriString[1] << endl;
-                return -1;
-
-            }
-            else
-            {
-                //remove the initial letter (i/o)
-                oriString=oriString.erase(0,1);
-                orien = stof(oriString);
-            }
-
+            oriString=oriString.erase(0,1);
+            orien = stof(oriString);
+            incliString=incliString.erase(0,1);
+            incli = stof(incliString);
         }
+        catch (exception& e)
+        {
+          cout << "Standard exception: " << e.what() << endl;
+        }
+
+//        //Identify data between incl and orient
+//        if (incliString[0]== 'i' || oriString[0]== 'o')
+//        {
+//            if (incliString[1] < '0' || incliString[1] > '9')
+//            {
+//                cout << "Wrong incliString!!! ->" << dec << incliString[1] << endl;
+//                cerr << "Wrong incliString!!! ->" << dec << incliString[1] << endl;
+//                return -1;
+
+//            }
+//            else
+//            {
+//                //remove the initial letter (i/o)
+//                incliString=incliString.erase(0,1);
+//                incli = stof(incliString);
+//            }
+//            if (oriString[1] < '0' || oriString[1] > '9')
+//            {
+//                cout << "Wrong oriString: " << dec << oriString[1] << endl;
+//                cerr << "Wrong oriString: " << dec << oriString[1] << endl;
+//                return -1;
+
+//            }
+//            else
+//            {
+//                //remove the initial letter (i/o)
+//                oriString=oriString.erase(0,1);
+//                orien = stof(oriString);
+//            }
+
+//        }
+//        else
+//        {
+//            return -1;
+//        }
 
 
     }
-//    else //
-//    {
-//        return -1;
-//    }
+
+
+    return 0;
+
+}
+
+long SerialArduino::estimateSensor(float &incli, float &orien)
+{
+
+    if (readSensor(incli,orien)<0)
+    {
+        //use estimation
+        incli=incli1+(incli1-incli0);
+        orien=orien1+(orien1-orien0);
+        cout << "Cant read sensor: estimated value!!" << endl;
+    }
+    else
+    {
+        //use read values
+        //and store new values
+        incli0=incli1;
+        orien0=orien1;
+        incli1=incli;
+        orien1=orien;
+    }
+
+
+
     return 0;
 
 }

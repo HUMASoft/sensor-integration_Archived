@@ -17,6 +17,8 @@ public:
     SerialArduino();
 
     long readSensor(float &incli, float &orien);
+    long estimateSensor(float &incli, float &orien);
+
 
 
 private:
@@ -36,6 +38,10 @@ private:
 
     int x;
     float theta, phi;
+
+    //estimateSensor variables
+    double incli0,incli1;
+    double orien0,orien1;
 };
 
 #endif // SERIALARDUINO_H
