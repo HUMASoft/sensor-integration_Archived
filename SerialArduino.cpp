@@ -53,6 +53,7 @@ SerialArduino::SerialArduino()
 
             if (port->open(QIODevice::ReadWrite))
             {
+                port->setDataTerminalReady(false); //from: https://forum.arduino.cc/index.php/topic,28167.0.html
                 cout << "port->open" << endl;
                 arduino_is_available = true;
                 if (port->waitForReadyRead(10000))
