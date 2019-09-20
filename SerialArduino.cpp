@@ -22,7 +22,8 @@ SerialArduino::SerialArduino()
         qDebug() << "Number of available ports: " << QSerialPortInfo::availablePorts().length();
         foreach(const QSerialPortInfo &serialPortInfo, QSerialPortInfo::availablePorts()){
             qDebug() << "Has vendor ID: " << serialPortInfo.hasVendorIdentifier();
-            if(serialPortInfo.hasVendorIdentifier() && serialPortInfo.portName()=="ttyACM0"){
+            if(serialPortInfo.hasVendorIdentifier() && serialPortInfo.portName()=="ttyACM0")
+            {
                 qDebug() << "Port: " << serialPortInfo.portName();
                 qDebug() <<"\n";
                 qDebug() << "Vendor ID: " << serialPortInfo.vendorIdentifier();
@@ -33,13 +34,19 @@ SerialArduino::SerialArduino()
 
 
         foreach(const QSerialPortInfo &serialPortInfo, QSerialPortInfo::availablePorts()){
-            if(serialPortInfo.hasVendorIdentifier() && serialPortInfo.hasProductIdentifier()){
-               if(serialPortInfo.vendorIdentifier() == arduino_uno_vendor_id){
-                 if(serialPortInfo.productIdentifier() == arduino_MEGA){
+//            if(serialPortInfo.hasVendorIdentifier() && serialPortInfo.hasProductIdentifier())
+            {
+               if(serialPortInfo.vendorIdentifier() == arduino_uno_vendor_id)
+               {
+                   cout << "arduino_uno_vendor_id: " << arduino_uno_vendor_id;
+                 if(serialPortInfo.productIdentifier() == arduino_MEGA)
+                 {
+                     cout << ". Arduino_MEGA: " << arduino_MEGA;
+
 //                   if(serialPortInfo.portName()=="ttyACM0")
                    {
                     arduino_port_name=serialPortInfo.portName();
-                    cout << "arduino_port_name: " << arduino_port_name.toUtf8().constData() << endl;
+                    cout << ". Arduino_port_name: " << arduino_port_name.toUtf8().constData() << endl;
                     arduino_is_available = true;
                    }
                  }
@@ -72,7 +79,7 @@ SerialArduino::SerialArduino()
             else
             {
                 arduino_is_available = false;
-                cout << "port->error. Check if user is in dialout group (sudo usermod -a -G dialout <user>)." << endl;
+                cout << "port->error. Check if user is in dialout group (sudo usermod -a -G dialout <user>) and restart session." << endl;
 
             }
 
@@ -215,4 +222,9 @@ long SerialArduino::estimateSensor(float &incli, float &orien)
 
     return 0;
 
+}
+
+bool SerialArduino::getArduino_is_available() const
+{
+    return arduino_is_available;
 }

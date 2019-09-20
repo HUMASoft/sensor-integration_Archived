@@ -21,6 +21,8 @@ public:
 
 
 
+    bool getArduino_is_available() const;
+
 private:
     QSerialPort *port;
     static const quint16 arduino_uno_vendor_id = 9025;
