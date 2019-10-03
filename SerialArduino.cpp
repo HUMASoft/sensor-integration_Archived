@@ -99,18 +99,36 @@ SerialArduino::SerialArduino()
 long SerialArduino::readSensor(float &incli, float &orien)
 {
 
+    long readResult;
 //    //Ask for inclination value
     port->write("i",1);
 //    //wait the data
     //This read should not block more than a second.
 //    if(!port->waitForReadyRead(1000)) return -1;
     // waitForReadyRead(security factor * data string size * bits/byte * ms/s / port->baudRate())
-    if (!port->waitForReadyRead(1.2*8*dataSize*1000/port->baudRate())) return -1;
+    if (!port->waitForReadyRead(8*dataSize*1000/port->baudRate())) return -1;
 
     if( port->isReadable())
     {
-        port->readLine(dataarray,dataSize);
-        dataSensor = string(dataarray);
+        dataSensor = "";
+//        cout << "Delete dataSensor -> " << dataSensor << endl;
+
+        do
+        {
+
+            readResult = port->readLine(dataarray,dataSize);
+//            cout << "Readresult :" << readResult <<  endl;
+            dataSensor+= string(dataarray);
+
+            if(readResult <= 0)
+            {
+                if (!port->waitForReadyRead(dataSize*8*1000/port->baudRate())) return -1;
+//                cout << "Missed chars :" << readResult <<  endl;
+            }
+
+        }
+        while(dataSensor[dataSensor.size()-1] != '\n' );
+
 //        cout << "dataSensor -> " << dataSensor << endl;
 
 //        for (int i=0;i<dataSize;i++)
@@ -129,6 +147,7 @@ long SerialArduino::readSensor(float &incli, float &orien)
 //            if (dataSensor[i]== '\n') break;
 //        }
 
+        //Here the data string is separated in orientation and inclination values
 
         incliString=dataSensor;
         oriString=dataSensor;
@@ -152,6 +171,7 @@ long SerialArduino::readSensor(float &incli, float &orien)
         catch (exception& e)
         {
           cout << "Standard exception: " << e.what() << endl;
+          cout << "Sensor received -> icnli:" <<incliString << "; ori:" <<oriString << endl;
         }
 
 //        //Identify data between incl and orient
