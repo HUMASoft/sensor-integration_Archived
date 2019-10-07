@@ -106,7 +106,7 @@ long SerialArduino::readSensor(float &incli, float &orien)
     //This read should not block more than a second.
 //    if(!port->waitForReadyRead(1000)) return -1;
     // waitForReadyRead(security factor * data string size * bits/byte * ms/s / port->baudRate())
-    if (!port->waitForReadyRead(8*dataSize*1000/port->baudRate())) return -1;
+    if (!port->waitForReadyRead(1.2*8*dataSize*1000/port->baudRate())) return -1;
 
     if( port->isReadable())
     {
@@ -122,7 +122,7 @@ long SerialArduino::readSensor(float &incli, float &orien)
 
             if(readResult <= 0)
             {
-                if (!port->waitForReadyRead(dataSize*8*1000/port->baudRate())) return -1;
+                if (!port->waitForReadyRead(1.2*8*dataSize*1000/port->baudRate())) return -1;
 //                cout << "Missed chars :" << readResult <<  endl;
             }
 
