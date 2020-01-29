@@ -22,7 +22,7 @@ SerialArduino::SerialArduino()
         qDebug() << "Number of available ports: " << QSerialPortInfo::availablePorts().length();
         foreach(const QSerialPortInfo &serialPortInfo, QSerialPortInfo::availablePorts()){
             qDebug() << "Has vendor ID: " << serialPortInfo.hasVendorIdentifier();
-            if(serialPortInfo.hasVendorIdentifier() && serialPortInfo.portName()=="ttyACM0")
+            if(serialPortInfo.hasVendorIdentifier())// && serialPortInfo.portName()=="ttyACM0")
             {
                 qDebug() << "Port: " << serialPortInfo.portName();
                 qDebug() <<"\n";
@@ -43,14 +43,27 @@ SerialArduino::SerialArduino()
                  {
                      cout << ". Arduino_MEGA: " << arduino_MEGA;
 
-//                   if(serialPortInfo.portName()=="ttyACM0")
-                   {
                     arduino_port_name=serialPortInfo.portName();
                     cout << ". Arduino_port_name: " << arduino_port_name.toUtf8().constData() << endl;
                     arduino_is_available = true;
-                   }
+
                  }
                }
+
+               if(serialPortInfo.vendorIdentifier() == arduino_nano_vendor_id)
+               {
+                   cout << "arduino_uno_vendor_id: " << arduino_uno_vendor_id;
+                 if(serialPortInfo.productIdentifier() == arduino_nano)
+                 {
+                     cout << ". Arduino_nano: " << arduino_nano;
+
+                    arduino_port_name=serialPortInfo.portName();
+                    cout << ". Arduino_port_name: " << arduino_port_name.toUtf8().constData() << endl;
+                    arduino_is_available = true;
+
+                 }
+               }
+
             }
          }
 
