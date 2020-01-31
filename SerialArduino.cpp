@@ -87,7 +87,7 @@ SerialArduino::SerialArduino(string portName)
             if (arduino_is_available)
             {
                 port->setDataTerminalReady(false); //from: https://forum.arduino.cc/index.php/topic,28167.0.html
-                if (port->waitForReadyRead(1000))
+                if (port->waitForReadyRead(10000))
                 {
 
                     port->readLine(dataarray,dataSize);
