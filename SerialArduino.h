@@ -14,10 +14,10 @@ using namespace std;
 class SerialArduino
 {
 public:
-    SerialArduino();
+    SerialArduino(string portName = "ttyACM0");
 
-    long readSensor(float &incli, float &orien);
-    long estimateSensor(float &incli, float &orien);
+    long readSensor(double &incli, double &orien);
+    long estimateSensor(double &incli, double &orien);
 
 
 

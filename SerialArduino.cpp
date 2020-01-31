@@ -5,7 +5,7 @@ using namespace std;
 
 
 
-SerialArduino::SerialArduino()
+SerialArduino::SerialArduino(string portName)
 {
 //    QApplication a(argc, argv);
 //    QApplication a(0, 0);
@@ -21,21 +21,23 @@ SerialArduino::SerialArduino()
         //Parte # 2,buscar puertos con los identificadores de Arduino
         qDebug() << "Number of available ports: " << QSerialPortInfo::availablePorts().length();
         foreach(const QSerialPortInfo &serialPortInfo, QSerialPortInfo::availablePorts()){
-            qDebug() << "Has vendor ID: " << serialPortInfo.hasVendorIdentifier();
-            if(serialPortInfo.hasVendorIdentifier())// && serialPortInfo.portName()=="ttyACM0")
+//            qDebug() << "Has vendor ID: " << serialPortInfo.hasVendorIdentifier();
+            if(serialPortInfo.hasVendorIdentifier() && serialPortInfo.portName().toStdString()==portName)
             {
                 qDebug() << "Port: " << serialPortInfo.portName();
-                qDebug() <<"\n";
                 qDebug() << "Vendor ID: " << serialPortInfo.vendorIdentifier();
                 qDebug() << "Has Product ID: " << serialPortInfo.hasProductIdentifier();
                 qDebug() << "Product ID: " << serialPortInfo.productIdentifier();
-             }
-        }
+                qDebug() <<"\n";
+
+//             }
+//        }
 
 
-        foreach(const QSerialPortInfo &serialPortInfo, QSerialPortInfo::availablePorts()){
-//            if(serialPortInfo.hasVendorIdentifier() && serialPortInfo.hasProductIdentifier())
-            {
+//        foreach(const QSerialPortInfo &serialPortInfo, QSerialPortInfo::availablePorts())
+//        {
+////            if(serialPortInfo.hasVendorIdentifier() && serialPortInfo.hasProductIdentifier())
+//            {
                if(serialPortInfo.vendorIdentifier() == arduino_uno_vendor_id)
                {
                    cout << "arduino_uno_vendor_id: " << arduino_uno_vendor_id;
@@ -45,7 +47,13 @@ SerialArduino::SerialArduino()
 
                     arduino_port_name=serialPortInfo.portName();
                     cout << ". Arduino_port_name: " << arduino_port_name.toUtf8().constData() << endl;
-                    arduino_is_available = true;
+                    port->setPortName(arduino_port_name);
+                    arduino_is_available = port->open(QIODevice::ReadWrite);
+                    if (arduino_is_available)
+                    {
+                        cout << "port->open" << endl;
+                        break;
+                    }
 
                  }
                }
@@ -59,8 +67,14 @@ SerialArduino::SerialArduino()
 
                     arduino_port_name=serialPortInfo.portName();
                     cout << ". Arduino_port_name: " << arduino_port_name.toUtf8().constData() << endl;
-                    arduino_is_available = true;
+                    port->setPortName(arduino_port_name);
+                    arduino_is_available = port->open(QIODevice::ReadWrite);
 
+                    if (arduino_is_available)
+                    {
+                        cout << "port->open" << endl;
+                        break;
+                    }
                  }
                }
 
@@ -69,14 +83,11 @@ SerialArduino::SerialArduino()
 
 //        if(arduino_is_available && arduino_port_name=="ttyACM0"){
             // open and configure the serialport
-            port->setPortName(arduino_port_name);
 
-            if (port->open(QIODevice::ReadWrite))
+            if (arduino_is_available)
             {
                 port->setDataTerminalReady(false); //from: https://forum.arduino.cc/index.php/topic,28167.0.html
-                cout << "port->open" << endl;
-                arduino_is_available = true;
-                if (port->waitForReadyRead(10000))
+                if (port->waitForReadyRead(1000))
                 {
 
                     port->readLine(dataarray,dataSize);
@@ -109,7 +120,7 @@ SerialArduino::SerialArduino()
 }
 
 
-long SerialArduino::readSensor(float &incli, float &orien)
+long SerialArduino::readSensor(double &incli, double &orien)
 {
 
     long readResult;
@@ -231,7 +242,7 @@ long SerialArduino::readSensor(float &incli, float &orien)
 
 }
 
-long SerialArduino::estimateSensor(float &incli, float &orien)
+long SerialArduino::estimateSensor(double &incli, double &orien)
 {
 
     if (readSensor(incli,orien)<0)
