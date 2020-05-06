@@ -176,7 +176,7 @@ long SerialArduino::readSensor(double &incli, double &orien)
         incliString=dataSensor;
         oriString=dataSensor;
         //Find ',' in data sensor to divide in incl and orient
-        for (int i=0;i<dataSensor.size();i++)
+        for (uint i=0;i<dataSensor.size();i++)
         {
             if (dataSensor[i]==',')
             {
@@ -188,9 +188,9 @@ long SerialArduino::readSensor(double &incli, double &orien)
         try
         {
             oriString=oriString.erase(0,1);
-            orien = stof(oriString);
+            orien = stod(oriString);
             incliString=incliString.erase(0,1);
-            incli = stof(incliString);
+            incli = stod(incliString);
         }
         catch (exception& e)
         {
