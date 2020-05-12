@@ -18,6 +18,11 @@ SerialArduino::SerialArduino(string portName)
         oriString.resize(dataSize);
         incliString.resize(dataSize);
 
+        ///Port connection.
+        // Options: QSerialPort::Baud<speed>
+        // <speed> one of: 1200,2400,4800,9600,19200,38400,57600,115200
+        qint32 baudrate =  QSerialPort::Baud19200;
+
         //Parte # 2,buscar puertos con los identificadores de Arduino
         qDebug() << "Number of available ports: " << QSerialPortInfo::availablePorts().length();
         foreach(const QSerialPortInfo &serialPortInfo, QSerialPortInfo::availablePorts()){
@@ -32,6 +37,9 @@ SerialArduino::SerialArduino(string portName)
 
 //             }
 //        }
+
+
+
 
 
 //        foreach(const QSerialPortInfo &serialPortInfo, QSerialPortInfo::availablePorts())
@@ -108,7 +116,8 @@ SerialArduino::SerialArduino(string portName)
             }
 
 //            cout << "setBaudRate:" << port->setBaudRate(QSerialPort::Baud9600);
-            cout << "setBaudRate:" << port->setBaudRate(QSerialPort::Baud19200);
+            cout << "setBaudRate:" << port->setBaudRate(baudrate);
+            cout << "Baudrate: " << port->baudRate() << endl;
             cout << ", setDataBits: " << port->setDataBits(QSerialPort::Data8);
             cout << ", setParity: " << port->setParity(QSerialPort::NoParity);
             cout << ", setStopBits: " << port->setStopBits(QSerialPort::OneStop);
