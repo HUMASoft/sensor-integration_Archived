@@ -7,6 +7,8 @@ FILE(GLOB_RECURSE SensorIntegration_INCLUDE_LIST ./*.h ./*.hpp)
 
 
 find_package(Qt5SerialPort REQUIRED)
+find_package(Boost COMPONENTS system thread REQUIRED)
+
 #why the fuck this do not work?
 #set(SUBDIR_INCLUDE_DIRECTORIES ${SUBDIR_INCLUDE_DIRECTORIES} ${Qt5SerialPort_INCLUDE_DIRS} PARENT_SCOPE)
 #find_package(Qt5Core REQUIRED)
