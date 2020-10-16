@@ -10,20 +10,21 @@ using namespace std;
 using namespace boost::asio;
 //using namespace boost;
 
+/*
 // These are the values our port needs to connect
 #ifdef _WIN64
 // windows uses com ports, this depends on what com port your cable is plugged in to.
-const char *PORT = "COM3";
+const char *PORTNAME = "COM3";
 #else
 // *nix com ports
-    const char *PORT = "/dev/ttyUSB0";
+    const char *PORTNAME = "/dev/ttyUSB0";
 #endif
-
+*/
 
 class SerialComm
 {
 public:
-    SerialComm(string portName = PORT);
+    SerialComm(string portName);
 
     //read functions
     long ReadLine(string & out_str);

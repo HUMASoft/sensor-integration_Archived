@@ -1,8 +1,8 @@
 #ifndef SENSORINTEGRATION_H
 #define SENSORINTEGRATION_H
 
+#include "SerialComm.h"
 #include "SerialArduino.h"
-//#include "SerialComm.h"
 
 class SensorIntegration
 {

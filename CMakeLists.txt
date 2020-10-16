@@ -18,7 +18,7 @@ set(SUBDIR_LINK_NAMES ${SUBDIR_LINK_NAMES} ${PROJECT_NAME} PARENT_SCOPE)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
 
 #create the lib
-ADD_LIBRARY(${PROJECT_NAME} SHARED ${SensorIntegration_SRCS})# ${SensorIntegration_INCLUDE_LIST})
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${SensorIntegration_SRCS} ${SensorIntegration_INCLUDE_LIST})
 
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 qt5_use_modules(${PROJECT_NAME} Core SerialPort)
