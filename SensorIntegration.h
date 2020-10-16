@@ -2,6 +2,7 @@
 #define SENSORINTEGRATION_H
 
 #include "SerialArduino.h"
+//#include "SerialComm.h"
 
 class SensorIntegration
 {
