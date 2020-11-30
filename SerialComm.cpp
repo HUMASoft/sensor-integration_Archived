@@ -23,3 +23,10 @@ long SerialComm::ReadLine(string &out_str)
     return 0;
 
 }
+
+long SerialComm::WriteLine(string &in_str)
+{
+
+    return 0;
+
+}

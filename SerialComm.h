@@ -24,10 +24,11 @@ const char *PORTNAME = "COM3";
 class SerialComm
 {
 public:
-    SerialComm(string portName);
+    SerialComm(string portName = "/dev/ttyUSB0");
 
     //read functions
     long ReadLine(string & out_str);
+    long WriteLine(string & in_str);
 
 private:
 
