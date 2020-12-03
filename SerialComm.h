@@ -24,21 +24,25 @@ const char *PORTNAME = "COM3";
 class SerialComm
 {
 public:
-    SerialComm(string portName = "/dev/ttyUSB0");
+    SerialComm(string portName = "/dev/ttyUSB0"); //Constructor
 
-    //read functions
-    long ReadLine(string & out_str);
-    long WriteLine(string & in_str);
+    //Read functions
+    string ReadLine(); //Read a line till final carriage \n
+    char ReadChar(); //Read a single char
+    string ReadNumberofChars(int); //Read a set of charts specified by the user
+    string ReadUntill (char); //Read until an ending condition specified by the user
+    int CheckLine(string); //Read data and compare it with a given string by the user
 
-private:
+    //Write functions
+    long WriteLine(string); //Write a line via serial comm
+
+private: //Attributes
 
     io_context io; //Active I/0 Functions
-    serial_port* port; //Creation of the object
-
+    serial_port *port; //Creation of the object
     boost::system::error_code error;
     boost::asio::streambuf buffer;
 
-    string temp_s;
 
 
 };
