@@ -11,7 +11,6 @@ IMU3DMGX510::IMU3DMGX510(string portName) : port(portName) {
 
 long IMU3DMGX510::set_IDLEmode() {
 
-
     //We send data to set 3DMGX10 to IDLE mode
     port.WriteLine(idle);
 
@@ -98,7 +97,7 @@ long IMU3DMGX510::set_devicetogetgyro(int freq){
         port.WriteLine(imudata1);
     }else if (freq==100){
         port.WriteLine(imudata100);
-    }else if (freq==100){
+    }else if (freq==1000){
         port.WriteLine(imudata1000);
     }
 
@@ -157,11 +156,12 @@ std::tuple <float, float, float> IMU3DMGX510::get_gyroPolling() {
     return std::make_tuple(gyroxvalue, gyroyvalue, gyrozvalue);
 
 }
-std::tuple <double, double> IMU3DMGX510::get_euleranglesPolling() {
+double* IMU3DMGX510::get_euleranglesPolling() {
 
 
     string reading;
     double roll, pitch;
+    static double estimation[2];
     char c;
     int comp=0;
     int fin=0;
@@ -260,8 +260,11 @@ std::tuple <double, double> IMU3DMGX510::get_euleranglesPolling() {
             pitch=estimador.eulerPitch();
         }
     }
-    cout << "My attitude is (YX Euler): (" << estimador.eulerPitch() << "," << estimador.eulerRoll() << ")" << endl;
-    return std::make_tuple(roll, pitch);
+    estimation[0]=estimador.eulerRoll();
+    estimation[1]=estimador.eulerPitch();
+    //cout << "(" << estimation[0] << "," << estimation[1] << ")" << endl;
+
+    return estimation;
 }
 
 std::tuple <double*,double*,double*> IMU3DMGX510::get_gyroContinuousStream(int samples){

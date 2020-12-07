@@ -34,7 +34,7 @@ public:
 
 
     std::tuple <float, float, float> get_gyroPolling();
-    std::tuple <double, double> get_euleranglesPolling();
+    double* get_euleranglesPolling();
 
 
     std::tuple <double*,double*,double*> get_gyroContinuousStream (int); //This funcion gives us gyro data
