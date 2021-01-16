@@ -1,96 +1,203 @@
 #include "imu3dmgx510.h"
 
 
-IMU3DMGX510::IMU3DMGX510(string portName) : port(portName) {
+// -------------------------  Constructor  -------------------------------
 
+IMU3DMGX510::IMU3DMGX510(string portName) : port(portName) {
     //3DMGX10 device will be calibrated once port where it has been connected to has been correctly opened thanks to SerialComm constructor.
     estimador.setMagCalib(0.0, 0.0, 0.0); //Device 3DMGX10 has no magnetometer
     estimador.setGyroBias(bx,by,bz); //Setting of gyro bias
     estimador.setPIGains(Kp, Ti, KpQuick, TiQuick); //Setting of device gains
 }
 
-long IMU3DMGX510::set_IDLEmode() {
+// -----------------------------------------------------------------------
 
+// -------------------------  Initialization  ----------------------------
+
+bool IMU3DMGX510::check() {
+    port.WriteLine(idle);
+    bool check = port.CheckLine(respuestacorrectaidle);
+    return check;
+}
+
+bool IMU3DMGX510::set_freq(int frequency){
+    freq=frequency;
+    return true;
+}
+
+bool IMU3DMGX510::calibrate(){
+
+    //We will obtain initial offset to correct it the moment we make measures
+    string answer;
+    char c;
+    char longitud;
+    char descriptor;
+    double roll=0.0;
+    double pitch=0.0;
+
+    for (int h=0; h<=500;h++){
+
+        //Reset of the variables to avoid infinite loops.
+        answer.clear();
+        int comp=0;
+        int fin=0;
+
+        do{
+            c = port.GetChar();
+            switch (c) {
+            case 'u':{
+                comp=1;
+                answer+=c;
+                break;}
+            case 'e':{
+                if (comp==1){
+                    fin=1;
+                    answer+=c;
+                }else{
+                    comp=0;
+                    answer+=c;
+                }
+                break;}
+
+            default:{
+                answer+=c;
+                break;}
+
+            }
+        }while(fin==0);
+
+        descriptor = port.GetChar();
+        answer+=descriptor;
+
+        longitud = port.GetChar();
+        answer+=longitud;
+
+        for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
+            c = port.GetChar();
+            answer+=c;
+        }
+
+        if (int(longitud) == 28){
+            ulf accx;
+            std::string str =hex(answer.substr(6,4));
+            std::stringstream ss(str);
+            ss >> std::hex >> accx.ul;
+            double f = accx.f;
+
+            ulf accy;
+            std::string str1 =hex(answer.substr(10,4));
+            std::stringstream ss1(str1);
+            ss1 >> std::hex >> accy.ul;
+            double f1 = accy.f;
+
+            ulf accz;
+            std::string str2 =hex(answer.substr(14,4));
+            std::stringstream ss2(str2);
+            ss2 >> std::hex >> accz.ul;
+            double f2 = accz.f;
+
+            ulf gyrox;
+            std::string str3 =hex(answer.substr(20,4));
+            std::stringstream ss3(str3);
+            ss3 >> std::hex >> gyrox.ul;
+            double f3 = gyrox.f;
+
+            ulf gyroy;
+            std::string str4 =hex(answer.substr(24,4));
+            std::stringstream ss4(str4);
+            ss4 >> std::hex >> gyroy.ul;
+            double f4 = gyroy.f;
+
+            ulf gyroz;
+            std::string str5 =hex(answer.substr(28,4));
+            std::stringstream ss5(str5);
+            ss5>> std::hex >> gyroz.ul;
+            double f5 = gyroz.f;
+
+            estimador.update(0.01,f3,f4,f5,f*9.81,f1*9.81,f2*9.81,0,0,0);
+            roll = estimador.eulerRoll();
+            pitch= estimador.eulerPitch();
+
+            //First 150 measures are ignored because they are not stable
+            if (h>=150 && h<=1000){
+                roll= roll + estimador.eulerRoll();
+                pitch = pitch + estimador.eulerPitch();
+            }
+        }
+    }
+    rolloffset = roll / 350;
+    pitchoffset = pitch / 350;
+//    cout << "Initial offsets: \n" << "Pitch = " << rolloffset << "\n" << "Roll = " << pitchoffset << endl;
+    return true;
+}
+
+// -----------------------------------------------------------------------
+
+// -------------------------  Configuration  -----------------------------
+
+bool IMU3DMGX510::set_IDLEmode() {
     //We send data to set 3DMGX10 to IDLE mode
     port.WriteLine(idle);
-
     //3DMGX10 will answer back a message showing if any error appeared in the process
     //We must read it
-    int comprobacion = port.CheckLine(respuestacorrectaidle);
-    if (comprobacion == 1){
-//        cout << "Envio y respuesta correctos" << endl;
-    }
-    return 0;
-
-
+    bool comprobacion = port.CheckLine(respuestacorrectaidle);
+    return comprobacion;
 }
 
-long IMU3DMGX510::set_streamon(){
-
+bool IMU3DMGX510::set_streamon(){
     //We activate data stream
         port.WriteLine(streamon);
-
         //3DMGX10 will answer back a message showing if any error appeared in the process
         //We must read it
-        int comprobacion = port.CheckLine(respuestacorrectastreamonoff);
+        bool comprobacion = port.CheckLine(respuestacorrectastreamonoff);
         if (comprobacion == 1){
 //            cout << "Envio y respuesta correctos" << endl;
         }
-    return 0;
+    return comprobacion;
 }
 
-long IMU3DMGX510::set_streamoff(){
-
+bool IMU3DMGX510::set_streamoff(){
     //We activate data stream
-        port.WriteLine(streamoff);
-
-        //3DMGX10 will answer back a message showing if any error appeared in the process
-        //We must read it
-        int comprobacion = port.CheckLine(respuestacorrectastreamonoff);
-        if (comprobacion == 1){
-//            cout << "Envio y respuesta correctos" << endl;
-        }
-    return 0;
+    port.WriteLine(streamoff);
+    //3DMGX10 will answer back a message showing if any error appeared in the process
+    //We must read it
+    bool comprobacion = port.CheckLine(respuestacorrectastreamonoff);
+    if (comprobacion == 1){
+        //            cout << "Envio y respuesta correctos" << endl;
+    }
+    return comprobacion;
 }
 
-long IMU3DMGX510::set_reset(){
-
+bool IMU3DMGX510::set_reset(){
     //We activate data stream
-        port.WriteLine(reset);
-
-        //3DMGX10 will answer back a message showing if any error appeared in the process
-        //We must read it
-        int comprobacion = port.CheckLine(respuestacorrectareset);
-        if (comprobacion == 1){
-//            cout << "Envio y respuesta correctos" << endl;
-        }
-    return 0;
+    port.WriteLine(reset);
+    //3DMGX10 will answer back a message showing if any error appeared in the process
+    //We must read it
+    bool comprobacion = port.CheckLine(respuestacorrectareset);
+    if (comprobacion == 1){
+        //            cout << "Envio y respuesta correctos" << endl;
+    }
+    return comprobacion;
 }
 
-long IMU3DMGX510::set_devicetogetgyroacc(int freq){
-
+bool IMU3DMGX510::set_devicetogetgyroacc(){
     //We will prepare our device to get gyros and accs values
     //Freq will be introduced by user (1Hz or 100Hz atm)
-
     if (freq==1){
         port.WriteLine(gyracc);
-
     }else if(freq==100){
         port.WriteLine(gyracc100);
     }
-
     //3DMGX10 will answer back a message showing if any error appeared in the process
     //We must read it
-    int comprobacion = port.CheckLine(respuestacorrectaajustes);
+    bool comprobacion = port.CheckLine(respuestacorrectaajustes);
     if (comprobacion == 1){
-//        cout << "Envio y respuesta correctos" << endl;
+        //        cout << "Envio y respuesta correctos" << endl;
     }
-    return 0;
-
+    return comprobacion;
 }
 
-long IMU3DMGX510::set_devicetogetgyro(int freq){
-
+bool IMU3DMGX510::set_devicetogetgyro(){
     //We will prepare our device to get gyros and accs values
     //Freq will be introduced by user (1Hz or 100Hz atm)
     if (freq==1){
@@ -100,18 +207,20 @@ long IMU3DMGX510::set_devicetogetgyro(int freq){
     }else if (freq==1000){
         port.WriteLine(imudata1000);
     }
-
     //3DMGX10 will answer back a message showing if any error appeared in the process
     //We must read it
-    int comprobacion = port.CheckLine(respuestacorrectaajustes);
+    bool comprobacion = port.CheckLine(respuestacorrectaajustes);
     if (comprobacion == 1){
 //        cout << "Envio y respuesta correctos" << endl;
     }
-    return 0;
-
+    return comprobacion;
 }
 
 
+// -----------------------------------------------------------------------
+
+
+// -------------------------  Getting data  ------------------------------
 
 std::tuple <float, float, float> IMU3DMGX510::get_gyroPolling() {
 
@@ -123,8 +232,7 @@ std::tuple <float, float, float> IMU3DMGX510::get_gyroPolling() {
 
     //3DMGX10 will answer back a message with gyro values
     //We must read it
-    reading = port.ReadNumberofChars(20);
-
+    reading = port.GetNumberofChars(20);
 
         //X
         ulf x;
@@ -134,16 +242,14 @@ std::tuple <float, float, float> IMU3DMGX510::get_gyroPolling() {
         ss >> std::hex >> x.ul;
         gyroxvalue = x.f;
 
-
-        //y
+        //Y
         ulf y;
         std::string str1 =hex(reading.substr(10,4));
         std::stringstream ss1(str1);
         ss1 >> std::hex >> y.ul;
         gyroyvalue = y.f;
 
-
-        //z
+        //Z
         ulf z;
         std::string str2 =hex(reading.substr(14,4));
         std::stringstream ss2(str2);
@@ -152,12 +258,9 @@ std::tuple <float, float, float> IMU3DMGX510::get_gyroPolling() {
 
     cout << "Our gyro velocities are: "<< gyroxvalue << " " << gyroyvalue << " " << gyrozvalue << endl;
 
-
     return std::make_tuple(gyroxvalue, gyroyvalue, gyrozvalue);
-
 }
 double* IMU3DMGX510::get_euleranglesPolling() {
-
 
     string reading;
     double roll, pitch;
@@ -165,26 +268,27 @@ double* IMU3DMGX510::get_euleranglesPolling() {
     char c;
     int comp=0;
     int fin=0;
+    int firsttime;
+
+    //First time needs a mayor number of samples in order to get calibrated
+    //After it, there is no need of taking such number of samples
+
+    if (firsttime==0){
 
     for (int i =0; i<=100 ; i++){
 
+        firsttime=1;
 
         //We send data to set 3DMGX10 to polling mode
         port.WriteLine(polling);
 
         //3DMGX10 will answer back a message with gyro and acc values
         //We must read it
-        //reading = port.ReadNumberofChars(34);
-        //cout << "Lo que leemos es: " << hex(reading) << endl;
-
-        // 7565 80 1C 0E 04 3DA807A0 3EC36059 3F696C54 0E 05 BE6745FE 3E17130F BDCEB19C 00C2
-
-
         comp=0;
         fin=0;
 
         do{
-            c = port.ReadChar();
+            c = port.GetChar();
             switch (c) {
             case 'u':{
                 comp=1;
@@ -207,14 +311,14 @@ double* IMU3DMGX510::get_euleranglesPolling() {
             }
         }while(fin==0);
 
-        char descriptor = port.ReadChar();
+        char descriptor = port.GetChar();
         reading+=descriptor;
 
-        char longitud = port.ReadChar();
+        char longitud = port.GetChar();
         reading+=longitud;
 
         for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
-            c = port.ReadChar();
+            c = port.GetChar();
             reading+=c;
         }
 
@@ -256,18 +360,98 @@ double* IMU3DMGX510::get_euleranglesPolling() {
             double f5 = gyroz.f;
 
             estimador.update(0.01,f3,f4,f5,f*9.81,f1*9.81,f2*9.81,0,0,0);
-            roll=estimador.eulerRoll();
-            pitch=estimador.eulerPitch();
         }
     }
+    }else{
+
+        //We send data to set 3DMGX10 to polling mode
+        port.WriteLine(polling);
+
+        comp=0;
+        fin=0;
+
+        do{
+            c = port.GetChar();
+            switch (c) {
+            case 'u':{
+                comp=1;
+                reading+=c;
+                break;}
+            case 'e':{
+                if (comp==1){
+                    fin=1;
+                    reading+=c;
+                }else{
+                    comp=0;
+                    reading+=c;
+                }
+                break;}
+
+            default:{
+                reading+=c;
+                break;}
+
+            }
+        }while(fin==0);
+
+        char descriptor = port.GetChar();
+        reading+=descriptor;
+
+        char longitud = port.GetChar();
+        reading+=longitud;
+
+        for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
+            c = port.GetChar();
+            reading+=c;
+        }
+
+        if (int(longitud) == 28){
+            ulf accx;
+            std::string str =hex(reading.substr(6,4));
+            std::stringstream ss(str);
+            ss >> std::hex >> accx.ul;
+            double f = accx.f;
+
+            ulf accy;
+            std::string str1 =hex(reading.substr(10,4));
+            std::stringstream ss1(str1);
+            ss1 >> std::hex >> accy.ul;
+            double f1 = accy.f;
+
+            ulf accz;
+            std::string str2 =hex(reading.substr(14,4));
+            std::stringstream ss2(str2);
+            ss2 >> std::hex >> accz.ul;
+            double f2 = accz.f;
+
+            ulf gyrox;
+            std::string str3 =hex(reading.substr(20,4));
+            std::stringstream ss3(str3);
+            ss3 >> std::hex >> gyrox.ul;
+            double f3 = gyrox.f;
+
+            ulf gyroy;
+            std::string str4 =hex(reading.substr(24,4));
+            std::stringstream ss4(str4);
+            ss4 >> std::hex >> gyroy.ul;
+            double f4 = gyroy.f;
+
+            ulf gyroz;
+            std::string str5 =hex(reading.substr(28,4));
+            std::stringstream ss5(str5);
+            ss5>> std::hex >> gyroz.ul;
+            double f5 = gyroz.f;
+
+            estimador.update(0.01,f3,f4,f5,f*9.81,f1*9.81,f2*9.81,0,0,0);
+        }
+     }
+
     estimation[0]=estimador.eulerRoll();
     estimation[1]=estimador.eulerPitch();
-    //cout << "(" << estimation[0] << "," << estimation[1] << ")" << endl;
-
     return estimation;
 }
 
-std::tuple <double*,double*,double*> IMU3DMGX510::get_gyroContinuousStream(int samples){
+std::tuple <double*,double*,double*> IMU3DMGX510::get_gyroStreaming(int samples){
 
     //Decl. of the variables
      char c;
@@ -292,7 +476,7 @@ std::tuple <double*,double*,double*> IMU3DMGX510::get_gyroContinuousStream(int s
          int fin=0;
 
          do{
-             c = port.ReadChar();
+             c = port.GetChar();
              switch (c) {
              case 'u':{
                  comp=1;
@@ -313,14 +497,14 @@ std::tuple <double*,double*,double*> IMU3DMGX510::get_gyroContinuousStream(int s
              }
          }while(fin==0);
 
-         descriptor = port.ReadChar();
+         descriptor = port.GetChar();
          answer+=descriptor;
 
-         longitud = port.ReadChar();
+         longitud = port.GetChar();
          answer+=longitud;
 
          for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
-             c = port.ReadChar();
+             c = port.GetChar();
              answer+=c;
          }
 
@@ -359,28 +543,7 @@ std::tuple <double*,double*,double*> IMU3DMGX510::get_gyroContinuousStream(int s
 
      return std::make_tuple(gyroxvector, gyroyvector, gyrozvector);
 }
-std::tuple <double*,double*,double,double> IMU3DMGX510::get_euleranglesContinuousStream(int samples){
-
-
-
-//    //We need to configurate the device to get gyros and accs
-//    port.WriteLine(gyracc100);
-
-//    //3DMGX10 will answer back a message showing if any error appeared in the process
-//    //We must read it
-
-//    int comprobacion = port.CheckLine(respuestacorrectaajustes);
-//    if (comprobacion == 1){
-//        cout << "Envio y respuesta correctos" << endl;
-//    }
-
-//    //Beginning of the stream
-//    port.WriteLine(streamon);
-
-//    int comprobacion2 = port.CheckLine(respuestacorrectastreamonoff);
-//    if (comprobacion2 == 1){
-//        cout << "Envio y respuesta correctos" << endl;
-//    }
+std::tuple <double*,double*,double,double> IMU3DMGX510::get_euleranglesStreaming(int samples){
 
     //Decl. of the variables
     string answer;
@@ -402,49 +565,49 @@ std::tuple <double*,double*,double,double> IMU3DMGX510::get_euleranglesContinuou
     //           7) To correct the initial offset, we will get the average value of the first 125 values. This way, if our initial offset Yaw it 2'5, a correct value to the measurings of this angle will be: measuring - 2'5.
     //           8) Repeat all steps "muestras" times.
 
-        for (int h=0; h<=samples;h++){
+    for (int h=0; h<=samples;h++){
 
-            //Reset of the variables to avoid infinite loops.
-             answer.clear();
-             int comp=0;
-             int fin=0;
+        //Reset of the variables to avoid infinite loops.
+        answer.clear();
+        int comp=0;
+        int fin=0;
 
-            do{
-                c = port.ReadChar();
-                switch (c) {
-                case 'u':{
-                    comp=1;
-                    answer+=c;
-                    break;}
-                case 'e':{
-                    if (comp==1){
-                        fin=1;
-                        answer+=c;
-                    }else{
-                        comp=0;
-                        answer+=c;
-                    }
-                    break;}
-
-                default:{
-                    answer+=c;
-                    break;}
-
-                }
-            }while(fin==0);
-
-            descriptor = port.ReadChar();
-            answer+=descriptor;
-
-            longitud = port.ReadChar();
-            answer+=longitud;
-
-            for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
-                c = port.ReadChar();
+        do{
+            c = port.GetChar();
+            switch (c) {
+            case 'u':{
+                comp=1;
                 answer+=c;
-            }
+                break;}
+            case 'e':{
+                if (comp==1){
+                    fin=1;
+                    answer+=c;
+                }else{
+                    comp=0;
+                    answer+=c;
+                }
+                break;}
 
-            if (int(longitud) == 28){
+            default:{
+                answer+=c;
+                break;}
+
+            }
+        }while(fin==0);
+
+        descriptor = port.GetChar();
+        answer+=descriptor;
+
+        longitud = port.GetChar();
+        answer+=longitud;
+
+        for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
+            c = port.GetChar();
+            answer+=c;
+        }
+
+        if (int(longitud) == 28){
             ulf accx;
             std::string str =hex(answer.substr(6,4));
             std::stringstream ss(str);
@@ -481,15 +644,13 @@ std::tuple <double*,double*,double,double> IMU3DMGX510::get_euleranglesContinuou
             ss5>> std::hex >> gyroz.ul;
             double f5 = gyroz.f;
 
-
             //If sensor is placed face down, we can skip the if loop.
             if (h>=100 && h<=samples){
 
                 estimador.update(0.01,f3,f4,f5,f*9.81,f1*9.81,f2*9.81,0,0,0);
                 rollvector[h-100]=estimador.eulerRoll();
                 pitchvector[h-100]=estimador.eulerPitch();
-                //cout << "My attitude is (YX Euler): (" << estimador.eulerPitch() << "," << estimador.eulerRoll() << ")" << endl;
-
+                cout << "My attitude is (YX Euler): (" << estimador.eulerPitch() << "," << estimador.eulerRoll() << ")" << endl;
 
                 if(h>=225 && h<=350){
 
@@ -503,10 +664,177 @@ std::tuple <double*,double*,double,double> IMU3DMGX510::get_euleranglesContinuou
                     }
                 }
             }
-           }
         }
-
-
-
-        return std::make_tuple(rollvector,pitchvector, rollaverage, pitchaverage);
     }
+
+    return std::make_tuple(rollvector,pitchvector, rollaverage, pitchaverage);
+}
+
+double* IMU3DMGX510::EulerAngles() {
+
+    string answer;
+    char c;
+    char longitud;
+    char descriptor;
+    static double EulerAngles[2];
+
+    //Reset of the variables to avoid infinite loops.
+    answer.clear();
+    int comp=0;
+    int fin=0;
+
+    do{
+        c = port.GetChar();
+        switch (c) {
+        case 'u':{
+            comp=1;
+            answer+=c;
+            break;}
+        case 'e':{
+            if (comp==1){
+                fin=1;
+                answer+=c;
+            }else{
+                comp=0;
+                answer+=c;
+            }
+            break;}
+
+        default:{
+            answer+=c;
+            break;}
+
+        }
+    }while(fin==0);
+
+    descriptor = port.GetChar();
+    answer+=descriptor;
+
+    longitud = port.GetChar();
+    answer+=longitud;
+
+    for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
+        c = port.GetChar();
+        answer+=c;
+    }
+
+    if (int(longitud) == 28){
+        ulf accx;
+        std::string str =hex(answer.substr(6,4));
+        std::stringstream ss(str);
+        ss >> std::hex >> accx.ul;
+        double f = accx.f;
+
+        ulf accy;
+        std::string str1 =hex(answer.substr(10,4));
+        std::stringstream ss1(str1);
+        ss1 >> std::hex >> accy.ul;
+        double f1 = accy.f;
+
+        ulf accz;
+        std::string str2 =hex(answer.substr(14,4));
+        std::stringstream ss2(str2);
+        ss2 >> std::hex >> accz.ul;
+        double f2 = accz.f;
+
+        ulf gyrox;
+        std::string str3 =hex(answer.substr(20,4));
+        std::stringstream ss3(str3);
+        ss3 >> std::hex >> gyrox.ul;
+        double f3 = gyrox.f;
+
+        ulf gyroy;
+        std::string str4 =hex(answer.substr(24,4));
+        std::stringstream ss4(str4);
+        ss4 >> std::hex >> gyroy.ul;
+        double f4 = gyroy.f;
+
+        ulf gyroz;
+        std::string str5 =hex(answer.substr(28,4));
+        std::stringstream ss5(str5);
+        ss5>> std::hex >> gyroz.ul;
+        double f5 = gyroz.f;
+
+        estimador.update(0.01,f3,f4,f5,f*9.81,f1*9.81,f2*9.81,0,0,0);
+        EulerAngles[0]=estimador.eulerRoll() - rolloffset;
+        EulerAngles[1]=estimador.eulerPitch() - pitchoffset;
+        }
+    return EulerAngles;
+}
+double* IMU3DMGX510::GyroData(){
+
+    //Decl. of the variables
+    char c;
+    string answer;
+    char descriptor;
+    char longitud;
+    static double GyrosData[3];
+
+    //Reset of the variables to avoid infinite loops.
+    answer.clear();
+    int comp=0;
+    int fin=0;
+
+    do{
+        c = port.GetChar();
+        switch (c) {
+        case 'u':{
+            comp=1;
+            answer+=c;
+            break;}
+        case 'e':{
+            if (comp==1){
+                fin=1;
+                answer+=c;
+            }else{
+                comp=0;
+                answer+=c;
+            }
+            break;}
+
+        default:{
+            break;}
+        }
+    }while(fin==0);
+
+    descriptor = port.GetChar();
+    answer+=descriptor;
+
+    longitud = port.GetChar();
+    answer+=longitud;
+
+    for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
+        c = port.GetChar();
+        answer+=c;
+    }
+
+    if (int(longitud) == 14){ //It must be 14
+        //X
+        ulf x;
+        std::string str =hex(answer.substr(6,4));
+        std::stringstream ss(str);
+        ss >> std::hex >> x.ul;
+        float f = x.f;
+        GyrosData[0] = f;
+
+        //y
+        ulf y;
+        std::string str1 =hex(answer.substr(10,4));
+        std::stringstream ss1(str1);
+        ss1 >> std::hex >> y.ul;
+        float f1 = y.f;
+        GyrosData[1] = f;
+
+        //z
+        ulf z;
+        std::string str2 =hex(answer.substr(14,4));
+        std::stringstream ss2(str2);
+        ss2 >> std::hex >> z.ul;
+        float f2 = z.f;
+        GyrosData[2] = f;
+    }
+
+return GyrosData;
+}
+
+// -----------------------------------------------------------------------
