@@ -56,3 +56,4 @@ private: //Attributes
 };
 
 #endif // SERIALCOMM_H
+

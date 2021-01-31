@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <sstream>
-#include <string.h>
+#include <string>
 #include <math.h>
 #include "attitude_estimator.h"
 #include <tuple>
@@ -41,7 +41,7 @@ public:
     double* get_euleranglesPolling();
 
    //This methods are developed to plot specified numbres of samples on Matlab
-    //We will get a vector to be copy pasted on Matlab to plot it
+    //We will get a vector to be copy pasted in Matlab to plot it
     std::tuple <double*,double*,double*> get_gyroStreaming (int); //This funcion gives us gyro data
     std::tuple <double*,double*,double,double> get_euleranglesStreaming (int); //This funcion gives us pitch and roll, and both initial pitch offset and initial roll offset
 
@@ -77,7 +77,8 @@ private: //Attributes
     double TiQuick = 1.25;
 
     //Frequency of our imu
-    int freq;
+    double freq;
+    double period;
 
     //Concrete data packets used by IMU3DMGX510
     std::string idle = "\x75\x65\x01\x02\x02\x02\xe1\xc7";
@@ -88,8 +89,11 @@ private: //Attributes
     std::string reset = "\x75\x65\x01\x02\x02\x7e\x5d\x43";
     std::string respuestacorrectareset = ("\x75\x65\x01\x04\x04\xF1\x7e\x00\x52\x64"s);
     std::string baudratenew = ("\x75\x65\x0c\x07\x07\x40\x01\x00\x03\x84\x00\xbc\x64"s);
-    std::string gyracc = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x03\xe8\x05\x03\xe8\xe4\x0b"s);
+    std::string gyracc1 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x03\xe8\x05\x03\xe8\xe4\x0b"s);
+    std::string gyracc50 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x14\x05\x00\x14\x36\xd2"s);
     std::string gyracc100 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x0a\x05\x00\x0a\x22\xa0"s);
+    std::string gyracc500 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x02\x05\x00\x02\x12\x78"s);
+    std::string gyracc1000 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x01\x05\x00\x01\x10\x73"s);
     std::string respuestacorrectaajustes = ("\x75\x65\x0c\x04\x04\xF1\x08\x00\xE7\xBA"s);
     std::string streamon = "\x75\x65\x0c\x05\x05\x11\x01\x01\x01\x04\x1a";
     std::string streamoff = ("\x75\x65\x0c\x05\x05\x11\x01\x01\x00\x03\x19"s);
