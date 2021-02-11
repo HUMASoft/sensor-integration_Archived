@@ -8,6 +8,7 @@
 #include "attitude_estimator.h"
 #include <tuple>
 #include <boost/algorithm/hex.hpp>
+using namespace std::literals::string_literals;
 using namespace boost::algorithm;
 
 #include "SerialComm.h"
