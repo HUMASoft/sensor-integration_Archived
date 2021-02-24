@@ -3,11 +3,26 @@
 
 // -------------------------  Constructor  -------------------------------
 
-IMU3DMGX510::IMU3DMGX510(string portName) : port(portName) {
+IMU3DMGX510::IMU3DMGX510(string portName, int new_freq) : port(portName)
+{
+
     //3DMGX10 device will be calibrated once port where it has been connected to has been correctly opened thanks to SerialComm constructor.
     estimador.setMagCalib(0.0, 0.0, 0.0); //Device 3DMGX10 has no magnetometer
     estimador.setGyroBias(bx,by,bz); //Setting of gyro bias
     estimador.setPIGains(Kp, Ti, KpQuick, TiQuick); //Setting of device gains
+
+    //Calibration
+    set_IDLEmode();
+    set_freq(new_freq);
+    set_devicetogetgyroacc();
+    set_streamon();
+    cout << "Calibrating IMU..." << endl;
+    calibrate();
+    cout << "Calibration done" << endl;
+
+    //Once the device is correctly connected, it's set to IDLE mode to stop transmitting data till user requests it
+    set_IDLEmode();
+
 }
 
 // -----------------------------------------------------------------------

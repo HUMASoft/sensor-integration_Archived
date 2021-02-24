@@ -17,9 +17,10 @@ using namespace stateestimation;
 
 class IMU3DMGX510
 {
+
 public:
 
-    IMU3DMGX510(string portName = "/dev/ttyUSB0"); //Constructor
+    IMU3DMGX510(string portName = "/dev/ttyUSB0", int new_freq = 100); //Constructor
 
      // -------- Initialization of the IMU. Implementation in imu3dmgx510.cpp --------
 
@@ -52,6 +53,7 @@ public:
     double* GyroData();
 
 private: //Attributes
+
 
     union ulf
     {
