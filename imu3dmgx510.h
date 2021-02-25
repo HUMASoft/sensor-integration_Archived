@@ -1,6 +1,8 @@
 #ifndef IMU3DMGX510_HPP
 #define IMU3DMGX510_HPP
 
+#define CAL_LOOPS 5 //number of initial calibration attempts
+
 #include <iostream>
 #include <sstream>
 #include <string>

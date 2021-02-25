@@ -48,6 +48,7 @@ bool IMU3DMGX510::calibrate(){
 
     //We will obtain initial offset to correct it the moment we make measures
     string answer, str, str1, str2, str3, str4, str5;
+    string line;
     char c;
     char longitud;
     char descriptor;
@@ -55,7 +56,8 @@ bool IMU3DMGX510::calibrate(){
     double pitch=0.0;
     ulf accx,accy,accz,gyrox,gyroy,gyroz;
 
-    for (int h=0; h<=500;h++){
+    for (int h=0; h<=CAL_LOOPS;h++)
+    {
 
         //Reset of the variables to avoid infinite loops.
         answer.clear();
@@ -77,89 +79,94 @@ bool IMU3DMGX510::calibrate(){
         longitud = '0';
         descriptor = '0';
 
-        do{
-            c = port.GetChar();
-            switch (c) {
-            case 'u':{
-                comp=1;
-                answer+=c;
-                break;}
-            case 'e':{
-                if (comp==1){
-                    fin=1;
-                    answer+=c;
-                }else{
-                    comp=0;
-                    answer+=c;
-                }
-                break;}
+        line = port.GetLine();
 
-            default:{
-                answer+=c;
-                break;}
+        cout << line << endl;
 
-            }
-        }while(fin==0);
 
-        descriptor = port.GetChar();
-        answer+=descriptor;
+//        do{
+//            c = port.GetChar();
+//            switch (c) {
+//            case 'u':{
+//                comp=1;
+//                answer+=c;
+//                break;}
+//            case 'e':{
+//                if (comp==1){
+//                    fin=1;
+//                    answer+=c;
+//                }else{
+//                    comp=0;
+//                    answer+=c;
+//                }
+//                break;}
 
-        longitud = port.GetChar();
-        answer+=longitud;
+//            default:{
+//                answer+=c;
+//                break;}
 
-        for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
-            c = port.GetChar();
-            answer+=c;
-        }
+//            }
+//        }while(fin==0);
 
-        if (int(longitud) == 28 && int(descriptor) == -128){
-            str =hex(answer.substr(6,4));
-            std::stringstream ss(str);
-            ss >> std::hex >> accx.ul;
-            f = accx.f;
+//        descriptor = port.GetChar();
+//        answer+=descriptor;
 
-            str1 =hex(answer.substr(10,4));
-            std::stringstream ss1(str1);
-            ss1 >> std::hex >> accy.ul;
-            f1 = accy.f;
+//        longitud = port.GetChar();
+//        answer+=longitud;
 
-            str2 =hex(answer.substr(14,4));
-            std::stringstream ss2(str2);
-            ss2 >> std::hex >> accz.ul;
-            f2 = accz.f;
+//        for (int j = 0 ; j<= ((int)longitud + 1) ; j++){
+//            c = port.GetChar();
+//            answer+=c;
+//        }
 
-            str3 =hex(answer.substr(20,4));
-            std::stringstream ss3(str3);
-            ss3 >> std::hex >> gyrox.ul;
-            f3 = gyrox.f;
+//        if (int(longitud) == 28 && int(descriptor) == -128){
+//            str =hex(answer.substr(6,4));
+//            std::stringstream ss(str);
+//            ss >> std::hex >> accx.ul;
+//            f = accx.f;
 
-            str4 =hex(answer.substr(24,4));
-            std::stringstream ss4(str4);
-            ss4 >> std::hex >> gyroy.ul;
-            f4 = gyroy.f;
+//            str1 =hex(answer.substr(10,4));
+//            std::stringstream ss1(str1);
+//            ss1 >> std::hex >> accy.ul;
+//            f1 = accy.f;
 
-            str5 =hex(answer.substr(28,4));
-            std::stringstream ss5(str5);
-            ss5>> std::hex >> gyroz.ul;
-            f5 = gyroz.f;
+//            str2 =hex(answer.substr(14,4));
+//            std::stringstream ss2(str2);
+//            ss2 >> std::hex >> accz.ul;
+//            f2 = accz.f;
 
-            estimador.update(period,f3,f4,f5,f*9.81,f1*9.81,f2*9.81,0,0,0);
-            roll = estimador.eulerRoll();
-            pitch= estimador.eulerPitch();
+//            str3 =hex(answer.substr(20,4));
+//            std::stringstream ss3(str3);
+//            ss3 >> std::hex >> gyrox.ul;
+//            f3 = gyrox.f;
 
-            //First 150 measures are ignored because they are not stable
-            if (h>=150 && h<=500){
-                rolloffset= rolloffset+ roll ;
-                pitchoffset= pitchoffset +pitch ;
-            }
-        }
+//            str4 =hex(answer.substr(24,4));
+//            std::stringstream ss4(str4);
+//            ss4 >> std::hex >> gyroy.ul;
+//            f4 = gyroy.f;
+
+//            str5 =hex(answer.substr(28,4));
+//            std::stringstream ss5(str5);
+//            ss5>> std::hex >> gyroz.ul;
+//            f5 = gyroz.f;
+
+//            estimador.update(period,f3,f4,f5,f*9.81,f1*9.81,f2*9.81,0,0,0);
+//            roll = estimador.eulerRoll();
+//            pitch= estimador.eulerPitch();
+
+//            //First 150 measures are ignored because they are not stable
+//            if (h>=150 && h<=500){
+//                rolloffset= rolloffset+ roll ;
+//                pitchoffset= pitchoffset +pitch ;
+//            }
+//        }
     }
-    rolloffset = rolloffset / 350;
-    pitchoffset = pitchoffset / 350;
+//    rolloffset = rolloffset / 350;
+//    pitchoffset = pitchoffset / 350;
 
-//    rolloffset=rolloffset*180/M_PI;
-//    pitchoffset=pitchoffset*180/M_PI;
-    cout << "Initial offsets: \n" << "Roll = " << rolloffset << "\n" << "Pitch = " << pitchoffset << endl;
+////    rolloffset=rolloffset*180/M_PI;
+////    pitchoffset=pitchoffset*180/M_PI;
+//    cout << "Initial offsets: \n" << "Roll = " << rolloffset << "\n" << "Pitch = " << pitchoffset << endl;
     return true;
 }
 
