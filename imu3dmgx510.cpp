@@ -1,5 +1,7 @@
 #include "imu3dmgx510.h"
 
+#include <iostream>
+#include <ios>
 
 // -------------------------  Constructor  -------------------------------
 
@@ -175,16 +177,33 @@ bool IMU3DMGX510::calibrate(){
 // -------------------------  Configuration  -----------------------------
 
 bool IMU3DMGX510::set_IDLEmode() {
-    bool comprobacion;
+//    bool comprobacion;
     //We send data to set 3DMGX10 to IDLE mode
     port.WriteLine(idle);
     //3DMGX10 will answer back a message showing if any error appeared in the process
     //We must read it
+    cout <<"3"<< endl;
     //Included loop to restart the process if it's frozen. It happens sometimes 1st time imu is active
-    do{
-    comprobacion = port.CheckLine(respuestacorrectaidle,idle);
-    }while (comprobacion==false);
-    return comprobacion;
+    for (int t=0; t<T_OUT; t+=T_WAIT)
+    {
+        cout <<"4"<< endl;
+
+        if(port.CheckLine(respuestacorrectaidle,idle))
+        {
+            cout <<"6"<< endl;
+
+            return 0;
+        }
+        cout <<"5"<< endl;
+
+        usleep(T_WAIT);
+    }
+        cout <<"7"<< endl;
+//    do{
+//    comprobacion = port.CheckLine(respuestacorrectaidle,idle);
+//    }while (comprobacion==false);
+
+    return 1;
 }
 
 bool IMU3DMGX510::set_streamon(){

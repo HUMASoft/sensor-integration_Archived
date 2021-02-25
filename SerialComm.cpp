@@ -164,6 +164,7 @@ bool SerialComm::CheckLine(string checkline, string writenline){
 
     do{
              start = std::clock();
+
         do{
             //Reset of some variables to avoid infinite loops
             deviceanswerr.clear();
