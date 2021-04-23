@@ -188,13 +188,18 @@ bool IMU3DMGX510::set_IDLEmode() {
     {
         cout <<"4"<< endl;
 
-        if(port.CheckLine(respuestacorrectaidle,idle))
-        {
-            cout <<"6"<< endl;
+        port.WriteLine("\x75\x65\x01\x02\x02\x02\xe1\xc7");
+        portResponse = port.ReadUntil("l");
+        if (portResponse[0]=='u') break;
+        cout << "\x75\x65\x01\x04\x04\xF1\x02\x00\xD6\x6C"<<endl;
+//        port.ReadUntil("U");
+//        if(port.CheckLine(respuestacorrectaidle,idle))
+//        {
+//            cout <<"6"<< endl;
 
-            return 0;
-        }
-        cout <<"5"<< endl;
+//            return 0;
+//        }
+//        cout <<"5"<< endl;
 
         usleep(T_WAIT);
     }

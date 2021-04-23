@@ -82,14 +82,14 @@ string SerialComm::GetNumberofChars(int size){
     return reading;
 }
 
-bool SerialComm::ReadUntill(char a){
+string SerialComm::ReadUntil(char * a){
 
-    string reading;
+//    cout <<" Read until:" << a << endl;
     boost::asio::read_until(*port, buffer, a, error );
     std::istream str(&buffer); //Transform our info buffer into a string
-    std::getline(str, reading); //Copy of the info from our buffer to our new string
+    std::getline(str, lineRead); //Copy of the info from our buffer to our new string
 //    cout << "Read data: " << reading << endl;
-    return true;
+    return lineRead;
 }
 
 // ---------------------------------------------------------------------

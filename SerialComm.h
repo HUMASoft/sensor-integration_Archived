@@ -36,7 +36,7 @@ public:
     bool ReadLine(); //Read a line till final carriage \n
     string GetLine(); //Read a line till final carriage \n and get it
 
-    bool ReadUntill (char); //Read until an ending condition specified by the user
+    string ReadUntil(char *); //Read until an ending condition specified by the user
 
  // -------- Writing methods declarations. Implementation in SerialComm.cpp --------
 
@@ -52,6 +52,9 @@ private: //Attributes
     serial_port *port; //Creation of the object
     boost::system::error_code error;
     boost::asio::streambuf buffer;
+
+    string lineRead;
+
 
 };
 

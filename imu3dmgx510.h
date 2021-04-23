@@ -57,6 +57,7 @@ public:
 
 private: //Attributes
 
+    string portResponse;
 
     union ulf
     {
