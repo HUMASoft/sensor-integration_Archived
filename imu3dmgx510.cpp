@@ -35,7 +35,7 @@ bool IMU3DMGX510::check() {
     bool check;
     port.WriteLine(idle);
     do{
-    check = port.CheckLine(respuestacorrectaidle,idle);
+    check = port.CheckLine(ok_idle,idle);
     }while (check==false);
     return check;
 }
@@ -46,7 +46,7 @@ bool IMU3DMGX510::set_freq(int frequency){
     return true;
 }
 
-bool IMU3DMGX510::calibrate(){
+long IMU3DMGX510::calibrate(){
 
     //We will obtain initial offset to correct it the moment we make measures
     string answer, str, str1, str2, str3, str4, str5;
@@ -83,7 +83,7 @@ bool IMU3DMGX510::calibrate(){
 
         line = port.GetLine();
 
-        cout << line << endl;
+//        cout << line << endl;
 
 
 //        do{
@@ -169,29 +169,30 @@ bool IMU3DMGX510::calibrate(){
 ////    rolloffset=rolloffset*180/M_PI;
 ////    pitchoffset=pitchoffset*180/M_PI;
 //    cout << "Initial offsets: \n" << "Roll = " << rolloffset << "\n" << "Pitch = " << pitchoffset << endl;
-    return true;
+    return 0;
 }
 
 // -----------------------------------------------------------------------
 
 // -------------------------  Configuration  -----------------------------
 
-bool IMU3DMGX510::set_IDLEmode() {
+long IMU3DMGX510::set_IDLEmode() {
 //    bool comprobacion;
     //We send data to set 3DMGX10 to IDLE mode
     port.WriteLine(idle);
     //3DMGX10 will answer back a message showing if any error appeared in the process
     //We must read it
-    cout <<"3"<< endl;
     //Included loop to restart the process if it's frozen. It happens sometimes 1st time imu is active
     for (int t=0; t<T_OUT; t+=T_WAIT)
     {
-        cout <<"4"<< endl;
 
         port.WriteLine("\x75\x65\x01\x02\x02\x02\xe1\xc7");
-        portResponse = port.ReadUntil("l");
-        if (portResponse[0]=='u') break;
-        cout << "\x75\x65\x01\x04\x04\xF1\x02\x00\xD6\x6C"<<endl;
+        portResponse = port.ReadUntil('l');
+
+        portResponse.resize(ok_idle.size());
+
+        if (portResponse.compare(ok_idle)==0) break;
+        cout << "Waiting \x75\x65\x01\x04\x04\xF1\x02\x00\xD6\x6C"<<endl;
 //        port.ReadUntil("U");
 //        if(port.CheckLine(respuestacorrectaidle,idle))
 //        {
@@ -203,101 +204,104 @@ bool IMU3DMGX510::set_IDLEmode() {
 
         usleep(T_WAIT);
     }
-        cout <<"7"<< endl;
 //    do{
 //    comprobacion = port.CheckLine(respuestacorrectaidle,idle);
 //    }while (comprobacion==false);
 
-    return 1;
+    return 0;
 }
 
-bool IMU3DMGX510::set_streamon(){
+long IMU3DMGX510::set_streamon(){
     //We activate data stream
         port.WriteLine(streamon);
         //3DMGX10 will answer back a message showing if any error appeared in the process
         //We must read it
-        bool comprobacion = port.CheckLine(respuestacorrectastreamonoff,streamon);
-        if (comprobacion == 1){
-//            cout << "Envio y respuesta correctos" << endl;
+        comprobacion = port.CheckLine(respuestacorrectastreamonoff,streamon);
+        if (comprobacion != 0){
+            cout << "set_streamon. Envio o respuesta incorrectos" << endl;
         }
     return comprobacion;
 }
 
-bool IMU3DMGX510::set_streamoff(){
+long IMU3DMGX510::set_streamoff(){
     //We deactivate data stream
     port.WriteLine(streamoff);
     //3DMGX10 will answer back a message showing if any error appeared in the process
     //We must read it
     bool comprobacion = port.CheckLine(respuestacorrectastreamonoff,streamoff);
-    if (comprobacion == 1){
-        //            cout << "Envio y respuesta correctos" << endl;
+    if (comprobacion != 0){
+                    cout << "set_streamoff. Envio o respuesta incorrectos" << endl;
     }
     return comprobacion;
 }
 
-bool IMU3DMGX510::set_reset(){
+long IMU3DMGX510::set_reset(){
     //We reset IMU
     port.WriteLine(reset);
     //3DMGX10 will answer back a message showing if any error appeared in the process
     //We must read it
     bool comprobacion = port.CheckLine(respuestacorrectareset,reset);
-    if (comprobacion == 1){
-        //            cout << "Envio y respuesta correctos" << endl;
+    if (comprobacion != 0){
+                    cout << "set_reset. Envio o respuesta incorrectos" << endl;
     }
     return comprobacion;
 }
 
-bool IMU3DMGX510::set_devicetogetgyroacc(){
+long IMU3DMGX510::set_devicetogetgyroacc(){
     //We will prepare our device to get gyros and accs values
     //Freq will be introduced by user (1Hz or 100Hz atm)
-    bool comprobacion;
     if(freq==1){
         port.WriteLine(gyracc1);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,gyracc1);
+        comprobacion = port.CheckLine(setok,gyracc1);
     }else if (freq == 50){
         port.WriteLine(gyracc50);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,gyracc50);
+        comprobacion = port.CheckLine(setok,gyracc50);
     }else if (freq == 100){
         port.WriteLine(gyracc100);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,gyracc100);
+        comprobacion = port.CheckLine(setok,gyracc100);
     }else if (freq == 500){
         port.WriteLine(gyracc500);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,gyracc500);
+        comprobacion = port.CheckLine(setok,gyracc500);
     }else if (freq == 1000){
         port.WriteLine(gyracc1000);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,gyracc1000);
+        comprobacion = port.CheckLine(setok,gyracc1000);
     }else{
         port.WriteLine(gyracc100);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,gyracc100);
+        comprobacion = port.CheckLine(setok,gyracc100);
     }
 
-    if (comprobacion == 1){
-        //        cout << "Envio y respuesta correctos" << endl;
+    if (comprobacion != 0){
+
+        cout << "set_devicetogetgyroacc. Envio o respuesta incorrectos" << endl;
+        for(uint i=0;i<setok.size();i++)
+        {
+            cout << int(setok[i]) << ",";
+        }
+        cout <<endl;
     }
     return comprobacion;
 }
 
-bool IMU3DMGX510::set_devicetogetgyro(){
+long IMU3DMGX510::set_devicetogetgyro(){
     //We will prepare our device to get gyros and accs values
     //Freq will be introduced by user (1Hz or 100Hz atm)
-    bool comprobacion;
     if (freq==1){
         port.WriteLine(imudata1);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,imudata1);
+        comprobacion = port.CheckLine(setok,imudata1);
     }else if (freq==100){
         port.WriteLine(imudata100);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,imudata100);
+        comprobacion = port.CheckLine(setok,imudata100);
     }else if (freq==1000){
         port.WriteLine(imudata1000);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,imudata1000);
+        comprobacion = port.CheckLine(setok,imudata1000);
                     printf(">>>1000 \n");
     }else{
         port.WriteLine(imudata100);
-        comprobacion = port.CheckLine(respuestacorrectaajustes,imudata100);
+        comprobacion = port.CheckLine(setok,imudata100);
     }
 
-    if (comprobacion == 1){
-        cout << "Envio y respuesta correctos" << endl;
+    if (comprobacion != 0){
+        cout << "set_devicetogetgyro. Envio o respuesta incorrectos" << endl;
     }
     return comprobacion;
 }

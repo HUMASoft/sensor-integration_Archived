@@ -36,7 +36,7 @@ public:
     bool ReadLine(); //Read a line till final carriage \n
     string GetLine(); //Read a line till final carriage \n and get it
 
-    string ReadUntil(char *); //Read until an ending condition specified by the user
+    string ReadUntil(char); //Read until an ending condition specified by the user
 
  // -------- Writing methods declarations. Implementation in SerialComm.cpp --------
 
@@ -44,7 +44,7 @@ public:
 
  // -------- Checking method declaration. Implementation in SerialComm.cpp --------
 
-    bool CheckLine(string,string); //Read data and compare it with a given string by the user
+    long CheckLine(string,string); //Read data and compare it with a given string by the user
 
 private: //Attributes
 

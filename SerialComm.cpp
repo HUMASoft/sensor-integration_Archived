@@ -6,10 +6,14 @@ SerialComm::SerialComm(string portName)
 {
     port = new boost::asio::serial_port(io);
     port->open(portName);
-    port->set_option(boost::asio::serial_port_base::baud_rate(115200));
-    if (port->is_open()){
+    if (port->is_open())
+    {
          cout << "Port " << portName << " has been correctly initialized" << endl;
-    }else{
+         port->set_option(boost::asio::serial_port_base::baud_rate(115200));
+
+    }
+    else
+    {
          cout << "Port " << portName << " can't be opened" << endl;
     }
 }
@@ -82,7 +86,7 @@ string SerialComm::GetNumberofChars(int size){
     return reading;
 }
 
-string SerialComm::ReadUntil(char * a){
+string SerialComm::ReadUntil(char a){
 
 //    cout <<" Read until:" << a << endl;
     boost::asio::read_until(*port, buffer, a, error );
@@ -144,7 +148,15 @@ bool SerialComm::WriteLine(string in_str){
 
 // -------------------------  Check functions  -------------------------
 
-bool SerialComm::CheckLine(string checkline, string writenline){
+long SerialComm::CheckLine(string checkline, string writenline)
+{
+
+    writenline.resize(checkline.size());
+    return writenline.compare(checkline);
+
+}
+
+/*bool SerialComm::CheckLine(string checkline, string writenline){
 
     //Implemented timer to avoid infinite loops. If sensor doesnt send back correct answer within a concrete time, the message is writen again
     std::clock_t start;
@@ -238,3 +250,4 @@ bool SerialComm::CheckLine(string checkline, string writenline){
     }while(flag4==0);
     return flag4;
 }
+*/
