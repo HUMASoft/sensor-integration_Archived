@@ -988,7 +988,7 @@ double* IMU3DMGX510::EulerAngles() {
         ss5>> std::hex >> gyroz.ul;
         f5 = gyroz.f;
 
-        estimador.update(period,f3,f4,f5,f*9.81,f1*9.81,f2*9.81,0,0,0);
+        estimador.update(period,f3,f4,f5,f*-9.81,f1*-9.81,f2*-9.81,0,0,0);
         EulerAngles[0]=estimador.eulerRoll() - rolloffset; //rads
         EulerAngles[1]=estimador.eulerPitch() - pitchoffset; //rads
 
