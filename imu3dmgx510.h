@@ -33,6 +33,7 @@ public:
 
      // -------- Configuration of the IMU. Implementation in imu3dmgx510.cpp --------
 
+    long Ping();
     long set_IDLEmode();  //This function sets our device into IDLE mode
     long set_streamon(); //This function enable stream
     long set_streamoff(); //This function disable stream
@@ -44,6 +45,8 @@ public:
 
     std::tuple <float, float, float> get_gyroPolling();
     double* get_euleranglesPolling();
+
+    long GetPitchRoll(double & pitch, double & roll);
 
    //This methods are developed to plot specified numbres of samples on Matlab
     //We will get a vector to be copy pasted in Matlab to plot it
@@ -59,6 +62,9 @@ private: //Attributes
 
     string portResponse;
     long comprobacion;
+    int firsttime=0;
+    long charsWritten=0;
+
 
     union ulf
     {
@@ -79,34 +85,58 @@ private: //Attributes
     double bz = -0.001066;
 
     //Defaults gains used
-    double Kp = 2.2;
-    double Ti = 2.65;
-    double KpQuick = 10;
-    double TiQuick = 1.25;
+    double Kp = 5*2.2;
+    double Ti = 1*2.65;
+    double KpQuick = 5*10;
+    double TiQuick = 1*1.25;
 
     //Frequency of our imu
     double freq;
     double period;
 
-    //Concrete data packets used by IMU3DMGX510
+    //Using string literals need a c++14 or higher.
+    //Find an alternative if lower c++ standard is needed.
+    //Specific data packets used by IMU3DMGX510
+    string ping = ("\x75\x65\x01\x02\x02\x01\xE0\xC6");
+    string ok_ping = ("\x75\x65\x01\x04\x04\xF1\x01\x00\xD5\x6A"s);
     std::string idle = "\x75\x65\x01\x02\x02\x02\xe1\xc7";
-    string ok_idle = ("\x75\x65\x01\x04\x04\xF1\x02\x00\xD6\x6C");
-    std::string imudata1 = "\x75\x65\x0c\x07\x07\x08\x01\x01\x05\x03\xe8\xee\x04";
-    std::string imudata100 = ("\x75\x65\x0c\x07\x07\x08\x01\x01\x05\x00\x0a\x0d\x20");
-    std::string imudata1000 = ("\x75\x65\x0c\x07\x07\x08\x01\x01\x05\x00\x01\x04\x17");
-    std::string reset = "\x75\x65\x01\x02\x02\x7e\x5d\x43";
-    std::string respuestacorrectareset = ("\x75\x65\x01\x04\x04\xF1\x7e\x00\x52\x64");
-    std::string baudratenew = ("\x75\x65\x0c\x07\x07\x40\x01\x00\x03\x84\x00\xbc\x64");
-    std::string gyracc1 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x03\xe8\x05\x03\xe8\xe4\x0b");
-    std::string gyracc50 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x14\x05\x00\x14\x36\xd2");
-    std::string gyracc100 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x0a\x05\x00\x0a\x22\xa0");
-    std::string gyracc500 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x02\x05\x00\x02\x12\x78");
-    std::string gyracc1000 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x01\x05\x00\x01\x10\x73");
-    std::string setok = ("\x75\x65\x0c\x04\x04\xF1\x08\x00\xE7\xBA");
-    std::string streamon = "\x75\x65\x0c\x05\x05\x11\x01\x01\x01\x04\x1a";
-    std::string streamoff = ("\x75\x65\x0c\x05\x05\x11\x01\x01\x00\x03\x19");
-    std::string respuestacorrectastreamonoff = ("\x75\x65\x0c\x04\x04\xF1\x11\x00\xf0\xcc");
-    std::string polling = ("\x75\x65\x0c\x04\x04\x01\x00\x00\xef\xda");
+    string ok_idle = ("\x75\x65\x01\x04\x04\xF1\x02\x00\xD6\x6C"s);
+//    string ok_idle = ("\x75\x65\x01\x04\x04\xF1\x02\x00"s);
+    std::string imudata1 = "\x75\x65\x0c\x07\x07\x08\x01\x01\x05\x03\xe8\xee\x04"s;
+    std::string imudata100 = ("\x75\x65\x0c\x07\x07\x08\x01\x01\x05\x00\x0a\x0d\x20"s);
+    std::string imudata1000 = ("\x75\x65\x0c\x07\x07\x08\x01\x01\x05\x00\x01\x04\x17"s);
+    std::string reset = "\x75\x65\x01\x02\x02\x7e\x5d\x43"s;
+    std::string ok_reset = ("\x75\x65\x01\x04\x04\xF1\x7e\x00\x52\x64"s);
+    std::string baudratenew = ("\x75\x65\x0c\x07\x07\x40\x01\x00\x03\x84\x00\xbc\x64"s);
+    std::string gyracc1 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x03\xe8\x05\x03\xe8\xe4\x0b"s);
+    std::string gyracc50 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x14\x05\x00\x14\x36\xd2"s);
+    std::string gyracc100 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x0a\x05\x00\x0a\x22\xa0"s);
+    std::string gyracc500 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x02\x05\x00\x02\x12\x78"s);
+    std::string gyracc1000 = ("\x75\x65\x0c\x0a\x0a\x08\x01\x02\x04\x00\x01\x05\x00\x01\x10\x73"s);
+    std::string setok = ("\x75\x65\x0c\x04\x04\xF1\x08\x00\xE7\xBA"s);
+    std::string streamon = "\x75\x65\x0c\x05\x05\x11\x01\x01\x01\x04\x1a"s;
+    std::string streamoff = ("\x75\x65\x0c\x05\x05\x11\x01\x01\x00\x03\x19"s);
+    std::string ok_streamon = ("\x75\x65\x0c\x04\x04\xF1\x11\x00\xf0\xcc"s);
+    std::string polling = ("\x75\x65\x0c\x04\x04\x01\x00\x00\xef\xda"s);
+    std::string poll_ready = ("\x75\x65\x0c\x04\x04\xF1\x01\x00\xe0\xac"s);
+    std::string poll_data = ("\x75\x65\x80\x1c");
+
+    //comm variables
+    uint descriptor;
+    uint payload;
+
+    //methods
+    ///
+    /// \brief GetPortLine: Get one line of data from the sensor
+    /// \param portLine(out): the line read.
+    /// \return : Size of the line.
+    ///
+    long GetPortLine(string & portLine);
+
+    long FindPortLine(string findText, string & wholeLine);
+
+    long ReadACK(string expected);
+    long ShowCode(string showString);
 };
 
 #endif // IMU3DMGX510_HPP

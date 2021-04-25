@@ -9,13 +9,19 @@ SerialComm::SerialComm(string portName)
     if (port->is_open())
     {
          cout << "Port " << portName << " has been correctly initialized" << endl;
-         port->set_option(boost::asio::serial_port_base::baud_rate(115200));
 
     }
     else
     {
          cout << "Port " << portName << " can't be opened" << endl;
     }
+}
+
+long SerialComm::SetBaudRate(ulong new_baudrate)
+{
+    port->set_option(boost::asio::serial_port_base::baud_rate(new_baudrate));
+
+    return 0;
 }
 
 // --------------------------------------------------------------------
@@ -61,16 +67,31 @@ char SerialComm::GetChar(){
     return a;
 }
 
-bool SerialComm::ReadNumberofChars(int size){
-    //This function will read a concrete number of chars
-    char a;
-    string reading;
-    for (int i=0; i<= size-1;i++){
-    boost::asio::read(*port,boost::asio::buffer(&a, 1));
-    reading += a;
+//This function will read a given number of chars
+string SerialComm::GetChars(int size)
+{
+    if (size > MAX_READ_CHARS)
+    {
+        cerr << "MAX_READ_CHARS. Use chunks of maximum: " << MAX_READ_CHARS  << endl;
+        cout << "MAX_READ_CHARS. Use chunks of maximum: "  << MAX_READ_CHARS  << endl;
+        boost::asio::read(*port,boost::asio::buffer(charbuff, MAX_READ_CHARS));
     }
+    else
+    {
+        boost::asio::read(*port,boost::asio::buffer(charbuff,size*sizeof(char)) );
+    }
+
+//    charbuff[size]='\n';
+//    string reading(charbuff);
+    reading.resize(size);
+    for (uint i=0; i<size;i++)
+    {
+        reading[i]=charbuff[i];
+    }
+//    cout << "GetChars " << size << " total vs read:" << reading.size() << endl;
+
 //    cout << "El conjunto de los " << size << " charts leidos es: " << reading << endl;
-    return true;
+    return reading;
 }
 
 string SerialComm::GetNumberofChars(int size){
@@ -86,24 +107,37 @@ string SerialComm::GetNumberofChars(int size){
     return reading;
 }
 
-string SerialComm::ReadUntil(char a){
+///
+/// \brief SerialComm::ReadAndFind
+/// \param delim: string with delimiter
+/// \param read_available(out): Reading of all available data to the moment
+/// \return : Number of characters till the delimiter
+///
+long SerialComm::ReadAndFind(string delim, string & read_available){
 
-//    cout <<" Read until:" << a << endl;
-    boost::asio::read_until(*port, buffer, a, error );
-    std::istream str(&buffer); //Transform our info buffer into a string
-    std::getline(str, lineRead); //Copy of the info from our buffer to our new string
-//    cout << "Read data: " << reading << endl;
-    return lineRead;
+//    cout <<" Read until:" << a[0] << endl;
+//    read_available.clear();
+    charsUntil = boost::asio::read_until(*port, boost::asio::dynamic_buffer(read_available), delim, error );
+    charsRead = read_available.size();
+//    std::istream str(&buffer); //Transform our info buffer into a string
+//    std::getline(str, lineRead); //Copy of the info from our buffer to our new string
+//    cout << "Read data: " << charsRead << endl;
+//    cout << "Position " << charsUntil << " total vs read:" << charsRead << endl;
+
+
+//    cout << "El conjunto de los " << size << " charts leidos es: " << reading << endl;
+    return charsUntil;
+//    return lineRead;
 }
 
 // ---------------------------------------------------------------------
 
 // -------------------------  Write functions  -------------------------
 
-bool SerialComm::WriteLine(string in_str){
+long SerialComm::WriteLine(string in_str){
 
     //This function will write a specified data packet via serial comm
-    //We want to be sure that the data packet we're sending to our device ends up with \n (general protocol)
+    //We want to be sure that the data packet we're sending to our device ends up with \n (standard protocol)
 
     int flagcomprobacion=0;
     string check;
@@ -134,14 +168,20 @@ bool SerialComm::WriteLine(string in_str){
     }
 
     //Finally, we sent our string with final carriage added
-    boost::asio::write(
+     charsWritten = boost::asio::write(
                 *port,
                 boost::asio::buffer(in_str.c_str(), in_str.size()),
                 boost::asio::transfer_at_least(in_str.size()),
                 error
                 );
 
-    return true;
+     if(charsWritten<=0)
+     {
+         cout << "Not responding. No data" << endl;
+         return -1;
+     }
+
+     return charsWritten;
 }
 
 // ---------------------------------------------------------------------
