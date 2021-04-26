@@ -648,14 +648,14 @@ long IMU3DMGX510::GetPitchRoll(double &pitch, double &roll)
 
     {
         //accelerations x and y need -9.81???!!!!
-    estimador.update(period,gx,gy,gz,ax,ay,az,0,0,0);
+    estimador.update(period,0.01*(gx-0.5*gy),0.01*(gy-0.5*gx),0.01*gz,ax,ay,az,0,0,0);
     pitch = estimador.eulerPitch();
     roll = estimador.eulerRoll();
 //    pitch = gx;
 //    roll = gy;
     }
 
-    cout << "Values: "  << period << "," << gx << "," <<  gy<< "," << gz<< "," << ax<< "," << ay<< "," << az<< "," << endl;
+//    cout << "Values: "  << period << "," << gx << "," <<  gy<< "," << gz<< "," << ax<< "," << ay<< "," << az<< "," << endl;
 
 
 
