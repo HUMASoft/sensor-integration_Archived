@@ -13,7 +13,7 @@ IMU3DMGX510::IMU3DMGX510(string portName, int new_freq) : port(portName)
     //3DMGX10 device will be calibrated once port where it has been connected to has been correctly opened thanks to SerialComm constructor.
     estimador.setMagCalib(0.0, 0.0, 0.0); //Device 3DMGX10 has no magnetometer
     estimador.setGyroBias(bx,by,bz); //Setting of gyro bias
-    estimador.setPIGains(Kp, Ti, KpQuick, TiQuick); //Setting of device gains
+//    estimador.setPIGains(Kp, Ti, KpQuick, TiQuick); //Setting of device gains
 //    estimador.setAccMethod(estimador.ME_FUSED_YAW);        // Optional: Use if you wish to experiment with varying acc-only resolution methods
 //    set_reset();
 
@@ -649,8 +649,10 @@ long IMU3DMGX510::GetPitchRoll(double &pitch, double &roll)
     {
         //accelerations x and y need -9.81???!!!!
     estimador.update(period,0.01*(gx-0.5*gy),0.01*(gy-0.5*gx),0.01*gz,ax,ay,az,0,0,0);
-    pitch = estimador.eulerPitch();
-    roll = estimador.eulerRoll();
+//    pitch = estimador.eulerPitch();
+//    roll = estimador.eulerRoll();
+    pitch = estimador.fusedPitch();
+    roll = estimador.fusedRoll();
 //    pitch = gx;
 //    roll = gy;
     }

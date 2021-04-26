@@ -79,16 +79,20 @@ private: //Attributes
     double rolloffset;
     double pitchoffset;
 
+//    //Setting of GyroBias
+//    double bx = -0.002786;
+//    double by = -0.001833;
+//    double bz = -0.001066;
     //Setting of GyroBias
-    double bx = -0.002786;
-    double by = -0.001833;
-    double bz = -0.001066;
+    double bx = -0.002681;
+    double by = -0.002166;
+    double bz = -0.001784;
 
     //Defaults gains used
-    double Kp = 10*2.2;
-    double Ti = 10*2.65;
-    double KpQuick = 0.1*10;
-    double TiQuick = 0.1*1.25;
+    double Kp = 2.2;
+    double Ti = 2.65;
+    double KpQuick = 10;
+    double TiQuick = 1.25;
 
     //Frequency of our imu
     double freq;
