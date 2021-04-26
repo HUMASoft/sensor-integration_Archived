@@ -85,10 +85,10 @@ private: //Attributes
     double bz = -0.001066;
 
     //Defaults gains used
-    double Kp = 5*2.2;
-    double Ti = 1*2.65;
-    double KpQuick = 5*10;
-    double TiQuick = 1*1.25;
+    double Kp = 10*2.2;
+    double Ti = 10*2.65;
+    double KpQuick = 0.1*10;
+    double TiQuick = 0.1*1.25;
 
     //Frequency of our imu
     double freq;

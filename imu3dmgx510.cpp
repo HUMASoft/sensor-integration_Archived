@@ -14,7 +14,7 @@ IMU3DMGX510::IMU3DMGX510(string portName, int new_freq) : port(portName)
     estimador.setMagCalib(0.0, 0.0, 0.0); //Device 3DMGX10 has no magnetometer
     estimador.setGyroBias(bx,by,bz); //Setting of gyro bias
     estimador.setPIGains(Kp, Ti, KpQuick, TiQuick); //Setting of device gains
-
+//    estimador.setAccMethod(estimador.ME_FUSED_YAW);        // Optional: Use if you wish to experiment with varying acc-only resolution methods
 //    set_reset();
 
 
@@ -608,49 +608,54 @@ long IMU3DMGX510::GetPitchRoll(double &pitch, double &roll)
     std::string str =hex(reading.substr(6,4));
     std::stringstream ss(str);
     ss >> std::hex >> accx.ul;
-    double f = accx.f;
+    double ax = accx.f;
 
     ulf accy;
     std::string str1 =hex(reading.substr(10,4));
     std::stringstream ss1(str1);
     ss1 >> std::hex >> accy.ul;
-    double f1 = accy.f;
+    double ay = accy.f;
 
     ulf accz;
     std::string str2 =hex(reading.substr(14,4));
     std::stringstream ss2(str2);
     ss2 >> std::hex >> accz.ul;
-    double f2 = accz.f;
+    double az = accz.f;
 
     ulf gyrox;
     std::string str3 =hex(reading.substr(20,4));
     std::stringstream ss3(str3);
     ss3 >> std::hex >> gyrox.ul;
-    double f3 = gyrox.f;
+    double gx = gyrox.f;
 
     ulf gyroy;
     std::string str4 =hex(reading.substr(24,4));
     std::stringstream ss4(str4);
     ss4 >> std::hex >> gyroy.ul;
-    double f4 = gyroy.f;
+    double gy = gyroy.f;
 
     ulf gyroz;
     std::string str5 =hex(reading.substr(28,4));
     std::stringstream ss5(str5);
     ss5>> std::hex >> gyroz.ul;
-    double f5 = gyroz.f;
+    double gz = gyroz.f;
 
-    if (isnan(f*f1*f2*f3*f4*f5))
+    if (isnan(ax*ay*az*gx*gy*gz))
     {
-        cout << f*f1*f2*f3*f4*f5 << endl;
+        cout << ax*ay*az*gx*gy*gz << endl;
         return -1;
     }
 
     {
-    estimador.update(period,f3,f4,f5,f*-9.81,f1*-9.81,f2*-9.81,0,0,0);
+        //accelerations x and y need -9.81???!!!!
+    estimador.update(period,gx,gy,gz,ax,ay,az,0,0,0);
     pitch = estimador.eulerPitch();
     roll = estimador.eulerRoll();
+//    pitch = gx;
+//    roll = gy;
     }
+
+    cout << "Values: "  << period << "," << gx << "," <<  gy<< "," << gz<< "," << ax<< "," << ay<< "," << az<< "," << endl;
 
 
 
