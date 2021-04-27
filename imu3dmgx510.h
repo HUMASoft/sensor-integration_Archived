@@ -17,6 +17,8 @@ using namespace boost::algorithm;
 #include "SerialComm.h"
 using namespace std;
 using namespace stateestimation;
+//using namespace std::string_literals;
+//using std::string_literals::operator""s;
 
 class IMU3DMGX510
 {
@@ -102,7 +104,8 @@ private: //Attributes
     //Find an alternative if lower c++ standard is needed.
     //Specific data packets used by IMU3DMGX510
     string ping = ("\x75\x65\x01\x02\x02\x01\xE0\xC6");
-    string ok_ping = ("\x75\x65\x01\x04\x04\xF1\x01\x00\xD5\x6A"s);
+    string ok_ping = string("\x75\x65\x01\x04\x04\xF1\x01\x00\xD5\x6A"s);
+
     std::string idle = "\x75\x65\x01\x02\x02\x02\xe1\xc7";
     string ok_idle = ("\x75\x65\x01\x04\x04\xF1\x02\x00\xD6\x6C"s);
 //    string ok_idle = ("\x75\x65\x01\x04\x04\xF1\x02\x00"s);
