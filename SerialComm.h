@@ -25,7 +25,7 @@ const char *PORTNAME = "COM3";
 class SerialComm
 {
 public:
-    SerialComm(string portName = "/dev/ttyUSB0"); //Constructor
+    SerialComm(string portName = "/dev/ttyUSB0", long new_baudrate = 115200); //Constructor
     long SetBaudRate(ulong new_baudrate);
 
  // -------- Reading methods declarations. Implementation in SerialComm.cpp --------
