@@ -49,6 +49,7 @@ public:
     double* get_euleranglesPolling();
 
     long GetPitchRoll(double & pitch, double & roll);
+    long GetIncliOri(double &pitch, double &ori);
 
    //This methods are developed to plot specified numbres of samples on Matlab
     //We will get a vector to be copy pasted in Matlab to plot it

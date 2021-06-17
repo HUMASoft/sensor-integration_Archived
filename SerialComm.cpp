@@ -2,13 +2,14 @@
 
 // -------------------------  Constructor  ----------------------------
 
-SerialComm::SerialComm(string portName)
+SerialComm::SerialComm(string portName, long new_baudrate)
 {
     port = new boost::asio::serial_port(io);
     port->open(portName);
     if (port->is_open())
     {
          cout << "Port " << portName << " has been correctly initialized" << endl;
+         SetBaudRate(new_baudrate);
 
     }
     else
@@ -42,7 +43,7 @@ bool SerialComm::ReadLine()
 string SerialComm::GetLine()
 {
     string reading;
-    //We'll read data till standar final carriage \n
+    //We'll read data till standard final carriage \n
     boost::asio::read_until( *port, buffer, "\n", error );
     std::istream str(&buffer); //Transform our info buffer into a string
     std::getline(str, reading); //Copy of the info from our buffer to our new string

@@ -665,6 +665,88 @@ long IMU3DMGX510::GetPitchRoll(double &pitch, double &roll)
     return 0;
 }
 
+
+long IMU3DMGX510::GetIncliOri(double &incli, double &ori)
+{
+
+    port.WriteLine(polling);
+    portResponse.clear();
+
+    //Really bad hardcoded time wait!!
+    //TODO: Compute the wait time correctly!!
+    usleep(10*1000); //10 milliseconds
+
+    FindPortLine(poll_data,portResponse);
+//    ShowCode(portResponse);
+
+    string reading = portResponse;
+    if (reading.size() < 32) return -1;
+
+    ulf accx;
+    std::string str =hex(reading.substr(6,4));
+    std::stringstream ss(str);
+    ss >> std::hex >> accx.ul;
+    double ax = accx.f;
+
+    ulf accy;
+    std::string str1 =hex(reading.substr(10,4));
+    std::stringstream ss1(str1);
+    ss1 >> std::hex >> accy.ul;
+    double ay = accy.f;
+
+    ulf accz;
+    std::string str2 =hex(reading.substr(14,4));
+    std::stringstream ss2(str2);
+    ss2 >> std::hex >> accz.ul;
+    double az = accz.f;
+
+    ulf gyrox;
+    std::string str3 =hex(reading.substr(20,4));
+    std::stringstream ss3(str3);
+    ss3 >> std::hex >> gyrox.ul;
+    double gx = gyrox.f;
+
+    ulf gyroy;
+    std::string str4 =hex(reading.substr(24,4));
+    std::stringstream ss4(str4);
+    ss4 >> std::hex >> gyroy.ul;
+    double gy = gyroy.f;
+
+    ulf gyroz;
+    std::string str5 =hex(reading.substr(28,4));
+    std::stringstream ss5(str5);
+    ss5>> std::hex >> gyroz.ul;
+    double gz = gyroz.f;
+
+    if (isnan(ax*ay*az*gx*gy*gz))
+    {
+        cout << ax*ay*az*gx*gy*gz << endl;
+        return -1;
+    }
+
+    {
+        //accelerations x and y need -9.81???!!!!
+    estimador.update(period,0.01*(gx-0.5*gy),0.01*(gy-0.5*gx),0.01*gz,ax,ay,az,0,0,0);
+//    pitch = estimador.eulerPitch();
+//    roll = estimador.eulerRoll();
+
+    incli = (180/M_PI)*sqrt(pow(estimador.fusedPitch(),2)+pow(estimador.fusedRoll(),2));
+    ori = (180/M_PI)*(atan2(estimador.fusedRoll(), estimador.fusedPitch())+M_PI);
+
+//    pitch = gx;
+//    roll = gy;
+    }
+
+//    cout << "Values: "  << period << "," << gx << "," <<  gy<< "," << gz<< "," << ax<< "," << ay<< "," << az<< "," << endl;
+
+
+
+
+    return 0;
+}
+
+
+
 std::tuple <double*,double*,double*> IMU3DMGX510::get_gyroStreaming(int samples){
 
     //Decl. of the variables
