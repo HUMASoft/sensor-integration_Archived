@@ -726,7 +726,9 @@ long IMU3DMGX510::GetIncliOri(double &incli, double &ori)
 
     {
         //accelerations x and y need -9.81???!!!!
-    estimador.update(period,0.01*(gx-0.5*gy),0.01*(gy-0.5*gx),0.01*gz,ax,ay,az,0,0,0);
+//    estimador.update(period,0.01*(gx-0.5*gy),0.01*(gy-0.5*gx),0.01*gz,ax,ay,az,0,0,0);
+    estimador.update(period,gz,gy,gz,ax,ay,az,0,0,0);
+
 //    pitch = estimador.eulerPitch();
 //    roll = estimador.eulerRoll();
 
