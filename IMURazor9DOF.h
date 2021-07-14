@@ -12,6 +12,7 @@ public:
     IMURazor9DOF(string portName = "/dev/ttyUSB0");
 
     long GetPitchRollYaw(double dts, double & o_pitch, double & o_roll, double & o_yaw);
+    long GetYawPitchRoll(double dts, double & o_yaw, double & o_pitch, double & o_roll);
 
 private:
     AttitudeEstimator att;
