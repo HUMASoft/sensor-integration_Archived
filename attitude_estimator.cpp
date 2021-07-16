@@ -27,6 +27,7 @@ AttitudeEstimator::AttitudeEstimator(bool quickLearn)
 {
 	// Initialise the entire class
 	resetAll(quickLearn);
+
 }
 
 // Reset functions
@@ -907,13 +908,13 @@ void AttitudeEstimator::updateEuler()
 	double stheta = 2.0*(m_Qhat[0]*m_Qhat[2] - m_Qhat[3]*m_Qhat[1]);
 	stheta = (stheta >= 1.0 ? 1.0 : (stheta <= -1.0 ? -1.0 : stheta)); // Coerce stheta to [-1,1]
 	m_Ehat[1] = asin(stheta);
-    if (!isnormal(m_Ehat[1])) cout << "ERROR m_Ehat[1]" << endl;
-	// Calculate yaw and roll
+
+    // Calculate yaw and roll
 	double ysq = m_Qhat[2]*m_Qhat[2];
 	m_Ehat[0] = atan2(m_Qhat[0]*m_Qhat[3]+m_Qhat[1]*m_Qhat[2], 0.5-(ysq+m_Qhat[3]*m_Qhat[3]));
 	m_Ehat[2] = atan2(m_Qhat[0]*m_Qhat[1]+m_Qhat[2]*m_Qhat[3], 0.5-(ysq+m_Qhat[1]*m_Qhat[1]));
 
-    if (!isnormal(m_Ehat[2])) cout << "ERROR m_Ehat[2]" << endl;
+    if (isnan(m_Ehat[0]*m_Ehat[1]*m_Ehat[2])) cout << "ERROR m_Ehat" << endl;
 
 	// Set the Euler angles valid flag
     m_eulerValid = true;
@@ -940,6 +941,9 @@ void AttitudeEstimator::updateFused()
 	sphi   = (sphi   >= 1.0 ? 1.0 : (sphi   <= -1.0 ? -1.0 : sphi  )); // Coerce sphi   to [-1,1]
 	m_Fhat[1] = asin(stheta);
 	m_Fhat[2] = asin(sphi);
+
+    if (isnan(m_Fhat[0]*m_Fhat[1]*m_Fhat[2])) cout << "ERROR m_Fhat" << endl;
+
 
 	// Calculate the hemisphere of the rotation
 	m_FhatHemi = (0.5 - (m_Qhat[1]*m_Qhat[1] + m_Qhat[2]*m_Qhat[2]) >= 0.0);

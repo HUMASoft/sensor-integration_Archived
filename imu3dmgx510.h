@@ -49,7 +49,9 @@ public:
     double* get_euleranglesPolling();
 
     long GetPitchRoll(double & pitch, double & roll);
-    long GetIncliOri(double &pitch, double &ori);
+    long GetPitchRollYaw(double & pitch, double & roll, double & yaw);
+
+    long Reset();
 
    //This methods are developed to plot specified numbres of samples on Matlab
     //We will get a vector to be copy pasted in Matlab to plot it
@@ -81,6 +83,11 @@ private: //Attributes
     //Initial offset
     double rolloffset;
     double pitchoffset;
+    double yawoffset;
+
+    double true_yawoff;//CR
+
+    double tmpYaw;
 
 //    //Setting of GyroBias
 //    double bx = -0.002786;
